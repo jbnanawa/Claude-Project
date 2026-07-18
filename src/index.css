@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Figtree", ui-sans-serif, sans-serif;
+
+  --color-blush-50: #fff8f5;
+  --color-blush-100: #fdf0eb;
+  --color-blush-200: #f3d6d0;
+  --color-blush-300: #e8b8b0;
+  --color-blush-400: #d4928a;
+  --color-blush-500: #c47b7b;
+  --color-blush-600: #a85f62;
+  --color-blush-700: #8a4a4e;
+
+  --color-sage-100: #eef3ee;
+  --color-sage-200: #d5e0d6;
+  --color-sage-400: #8fa68e;
+  --color-sage-600: #5f735f;
+
+  --color-ink: #3d3230;
+  --color-ink-soft: #6b5c59;
+  --color-ink-muted: #9a8a86;
+
+  --color-surface: #ffffffcc;
+  --color-surface-solid: #fffbf9;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background:
+      radial-gradient(ellipse 80% 50% at 10% 0%, #f3d6d0 0%, transparent 55%),
+      radial-gradient(ellipse 70% 45% at 90% 10%, #eef3ee 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, #f8e4d8 0%, transparent 55%),
+      linear-gradient(160deg, #fff8f5 0%, #fdf0eb 40%, #f7f3ef 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.55s ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out both;
+  }
+
+  .animate-soft-pulse {
+    animation: soft-pulse 4s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+}
