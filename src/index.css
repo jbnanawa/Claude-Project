@@ -18,6 +18,10 @@
   --color-sage-400: #8fa68e;
   --color-sage-600: #5f735f;
 
+  --color-mist-100: #edf2f7;
+  --color-mist-200: #d3e0ea;
+  --color-mist-600: #56718a;
+
   --color-ink: #3d3230;
   --color-ink-soft: #6b5c59;
   --color-ink-muted: #9a8a86;
@@ -54,6 +58,22 @@
   select,
   textarea {
     font: inherit;
+  }
+
+  ::selection {
+    background: var(--color-blush-200);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

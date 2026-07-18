@@ -11,10 +11,46 @@ import type { Goal, View, VisionItem } from './types'
 const GOALS_KEY = 'glow-within-goals'
 const VISIONS_KEY = 'glow-within-visions'
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isGoalArray(value: unknown): value is Goal[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (goal) =>
+        isRecord(goal) &&
+        typeof goal.id === 'string' &&
+        typeof goal.title === 'string' &&
+        typeof goal.completed === 'boolean' &&
+        typeof goal.createdAt === 'string',
+    )
+  )
+}
+
+function isVisionArray(value: unknown): value is VisionItem[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        isRecord(item) &&
+        typeof item.id === 'string' &&
+        typeof item.title === 'string' &&
+        typeof item.imageUrl === 'string' &&
+        typeof item.createdAt === 'string',
+    )
+  )
+}
+
 export default function App() {
   const [view, setView] = useState<View>('dashboard')
-  const [goals, setGoals] = useLocalStorage<Goal[]>(GOALS_KEY, [])
-  const [visions, setVisions] = useLocalStorage<VisionItem[]>(VISIONS_KEY, [])
+  const [goals, setGoals] = useLocalStorage<Goal[]>(GOALS_KEY, [], isGoalArray)
+  const [visions, setVisions] = useLocalStorage<VisionItem[]>(
+    VISIONS_KEY,
+    [],
+    isVisionArray,
+  )
 
   function addGoal(goal: Goal) {
     setGoals((prev) => [goal, ...prev])
@@ -40,6 +76,12 @@ export default function App() {
     setVisions((prev) => prev.filter((item) => item.id !== id))
   }
 
+  function updateVision(updated: VisionItem) {
+    setVisions((prev) =>
+      prev.map((item) => (item.id === updated.id ? updated : item)),
+    )
+  }
+
   return (
     <Layout view={view} onNavigate={setView}>
       {view === 'dashboard' && (
@@ -47,10 +89,12 @@ export default function App() {
       )}
 
       {view === 'goals' && (
-        <div className="space-y-8">
+        <div className="space-y-8 sm:space-y-10">
           <header className="animate-fade-up">
-            <h1 className="font-display text-4xl text-ink">Goals</h1>
-            <p className="mt-2 max-w-xl text-ink-soft">
+            <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
+              Goals
+            </h1>
+            <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
               Set intentions by category and watch them gather gently over time.
             </p>
           </header>
@@ -68,10 +112,12 @@ export default function App() {
       )}
 
       {view === 'vision' && (
-        <div className="space-y-8">
+        <div className="space-y-8 sm:space-y-10">
           <header className="animate-fade-up">
-            <h1 className="font-display text-4xl text-ink">Vision Board</h1>
-            <p className="mt-2 max-w-xl text-ink-soft">
+            <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
+              Vision Board
+            </h1>
+            <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
               Collect images of the life you want to manifest, each with a note
               of intention.
             </p>
@@ -80,6 +126,7 @@ export default function App() {
             items={visions}
             onAdd={addVision}
             onDelete={deleteVision}
+            onUpdate={updateVision}
           />
         </div>
       )}

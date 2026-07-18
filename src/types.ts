@@ -20,6 +20,7 @@ export interface VisionItem {
   imageUrl: string
   title: string
   description: string
+  achieved?: boolean
   createdAt: string
 }
 

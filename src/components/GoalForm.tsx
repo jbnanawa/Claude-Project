@@ -36,7 +36,7 @@ export function GoalForm({ onAdd }: GoalFormProps) {
       onSubmit={handleSubmit}
       className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-6 shadow-[0_8px_28px_rgba(61,50,48,0.04)] animate-fade-up"
     >
-      <h2 className="font-display text-2xl text-ink">Add a goal</h2>
+      <h2 className="font-display text-xl text-ink sm:text-2xl">Add a goal</h2>
       <p className="mt-1 text-sm text-ink-soft">
         Choose a category and write what you want to grow toward.
       </p>
@@ -89,7 +89,7 @@ export function GoalForm({ onAdd }: GoalFormProps) {
 
       <button
         type="submit"
-        className="mt-5 rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+        className="mt-6 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto"
       >
         Save goal
       </button>

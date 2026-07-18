@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { createId } from '../lib/id'
 import type { VisionItem } from '../types'
 
@@ -6,14 +6,60 @@ interface VisionBoardProps {
   items: VisionItem[]
   onAdd: (item: VisionItem) => void
   onDelete: (id: string) => void
+  onUpdate: (item: VisionItem) => void
 }
 
-export function VisionBoard({ items, onAdd, onDelete }: VisionBoardProps) {
+export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [preview, setPreview] = useState('')
   const [error, setError] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [tab, setTab] = useState<'progress' | 'archived'>('progress')
+
+  useEffect(() => {
+    if (!openMenuId) return
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (!(event.target as Element).closest('[data-vision-menu]')) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    return () => document.removeEventListener('pointerdown', closeOnOutsideClick)
+  }, [openMenuId])
+
+  function startEditing(item: VisionItem) {
+    setOpenMenuId(null)
+    setEditingId(item.id)
+    setEditTitle(item.title)
+    setEditDescription(item.description)
+  }
+
+  function toggleAchieved(item: VisionItem) {
+    onUpdate({ ...item, achieved: !item.achieved })
+    setOpenMenuId(null)
+  }
+
+  function cancelEditing() {
+    setEditingId(null)
+  }
+
+  function saveEditing(item: VisionItem) {
+    const trimmedTitle = editTitle.trim()
+    const trimmedDescription = editDescription.trim()
+    if (!trimmedTitle || !trimmedDescription) return
+
+    onUpdate({
+      ...item,
+      title: trimmedTitle,
+      description: trimmedDescription,
+    })
+    setEditingId(null)
+  }
 
   function resetForm() {
     setTitle('')
@@ -64,6 +110,9 @@ export function VisionBoard({ items, onAdd, onDelete }: VisionBoardProps) {
   }
 
   const sorted = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const inProgress = sorted.filter((item) => !item.achieved)
+  const archived = sorted.filter((item) => item.achieved)
+  const visible = tab === 'archived' ? archived : inProgress
 
   return (
     <div className="space-y-8">
@@ -71,7 +120,9 @@ export function VisionBoard({ items, onAdd, onDelete }: VisionBoardProps) {
         onSubmit={handleSubmit}
         className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-6 shadow-[0_8px_28px_rgba(61,50,48,0.04)] animate-fade-up"
       >
-        <h2 className="font-display text-2xl text-ink">Add to your vision board</h2>
+        <h2 className="font-display text-xl text-ink sm:text-2xl">
+          Add to your vision board
+        </h2>
         <p className="mt-1 text-sm text-ink-soft">
           Save an image and describe what you want to manifest.
         </p>
@@ -148,7 +199,7 @@ export function VisionBoard({ items, onAdd, onDelete }: VisionBoardProps) {
 
         <button
           type="submit"
-          className="mt-5 rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+          className="mt-6 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto"
         >
           Add to board
         </button>
@@ -162,37 +213,205 @@ export function VisionBoard({ items, onAdd, onDelete }: VisionBoardProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((item, index) => (
+        <div className="space-y-5">
+          <div
+            role="tablist"
+            aria-label="Vision filter"
+            className="inline-flex items-center gap-1 rounded-xl border border-blush-200/70 bg-surface-solid/90 p-1"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'progress'}
+              onClick={() => setTab('progress')}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+                tab === 'progress'
+                  ? 'bg-blush-500 text-white'
+                  : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
+              }`}
+            >
+              In progress ({inProgress.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'archived'}
+              onClick={() => setTab('archived')}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+                tab === 'archived'
+                  ? 'bg-blush-500 text-white'
+                  : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
+              }`}
+            >
+              Archived ({archived.length})
+            </button>
+          </div>
+
+          {visible.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+              {tab === 'archived' ? (
+                <>
+                  <p className="font-display text-xl text-ink">Nothing archived yet</p>
+                  <p className="mt-2 text-sm text-ink-soft">
+                    Visions you mark as achieved will rest here.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-display text-xl text-ink">
+                    Everything is achieved
+                  </p>
+                  <p className="mt-2 text-sm text-ink-soft">
+                    Add a new vision or revisit your archive to celebrate.
+                  </p>
+                </>
+              )}
+            </div>
+          ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((item, index) => (
             <article
               key={item.id}
-              className="group overflow-hidden rounded-2xl border border-blush-200/70 bg-surface-solid/90 shadow-[0_8px_24px_rgba(61,50,48,0.04)] transition hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(61,50,48,0.08)] animate-fade-up"
+              className="group rounded-2xl border border-blush-200/70 bg-surface-solid/90 shadow-[0_8px_24px_rgba(61,50,48,0.04)] transition hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(61,50,48,0.08)] animate-fade-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="aspect-[4/3] overflow-hidden bg-blush-100">
+              <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-blush-100">
                 <img
                   src={item.imageUrl}
                   alt={item.title}
+                  loading="lazy"
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                 />
               </div>
               <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-lg text-ink">{item.title}</h3>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(item.id)}
-                    className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  {item.description}
-                </p>
+                {editingId === item.id ? (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Title"
+                      className="w-full rounded-xl border border-blush-200 bg-blush-50 px-3 py-2 font-display text-lg text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={3}
+                      placeholder="Description"
+                      className="w-full resize-y rounded-xl border border-blush-200 bg-blush-50 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={cancelEditing}
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => saveEditing(item)}
+                        disabled={!editTitle.trim() || !editDescription.trim()}
+                        className="rounded-lg bg-blush-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blush-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <h3 className="font-display text-lg text-ink">{item.title}</h3>
+                        <span
+                          className={`rounded-lg border px-2 py-0.5 text-xs font-medium ${
+                            item.achieved
+                              ? 'border-sage-200 bg-sage-100 text-sage-600'
+                              : 'border-mist-200 bg-mist-100 text-mist-600'
+                          }`}
+                        >
+                          {item.achieved ? 'Achieved' : 'In progress'}
+                        </span>
+                      </div>
+                      <div className="relative shrink-0" data-vision-menu>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenMenuId(openMenuId === item.id ? null : item.id)
+                          }
+                          aria-haspopup="menu"
+                          aria-expanded={openMenuId === item.id}
+                          aria-label={`Options for ${item.title}`}
+                          className="rounded-lg px-1.5 py-1 text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <circle cx="8" cy="3" r="1.4" />
+                            <circle cx="8" cy="8" r="1.4" />
+                            <circle cx="8" cy="13" r="1.4" />
+                          </svg>
+                        </button>
+                        {openMenuId === item.id ? (
+                          <div
+                            role="menu"
+                            className="absolute right-0 top-full z-10 mt-1 w-44 rounded-xl border border-blush-200 bg-surface-solid p-1 shadow-[0_10px_30px_rgba(61,50,48,0.12)]"
+                          >
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => toggleAchieved(item)}
+                              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-ink transition hover:bg-blush-100"
+                            >
+                              Achieved
+                              {item.achieved ? (
+                                <svg
+                                  className="h-3.5 w-3.5 text-sage-600"
+                                  viewBox="0 0 16 16"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="m3 8.5 3.5 3.5L13 5" />
+                                </svg>
+                              ) : null}
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => startEditing(item)}
+                              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink transition hover:bg-blush-100"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => onDelete(item.id)}
+                              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-blush-700 transition hover:bg-blush-100"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                      {item.description}
+                    </p>
+                  </>
+                )}
               </div>
             </article>
           ))}
+          </div>
+          )}
         </div>
       )}
     </div>
