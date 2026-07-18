@@ -17,7 +17,7 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-blush-200/60 bg-blush-50/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
           <button
             type="button"
             onClick={() => onNavigate('dashboard')}
@@ -31,7 +31,10 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
             </span>
           </button>
 
-          <nav className="flex items-center gap-1 sm:gap-1.5" aria-label="Main">
+          <nav
+            className="flex w-full items-center gap-1 overflow-x-auto sm:w-auto sm:gap-1.5"
+            aria-label="Main"
+          >
             {NAV_ITEMS.map((item) => {
               const active = view === item.id
               return (
@@ -39,7 +42,7 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
                   key={item.id}
                   type="button"
                   onClick={() => onNavigate(item.id)}
-                  className={`rounded-xl px-3 py-2 text-sm font-medium transition sm:px-3.5 ${
+                  className={`shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition sm:px-3.5 ${
                     active
                       ? 'bg-blush-500 text-white'
                       : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
