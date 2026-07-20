@@ -8,6 +8,7 @@ export function useLocalStorage<T>(
   const [value, setValue] = useState<T>(() =>
     readStoredValue(key, initialValue, validate),
   )
+  const [persistFailed, setPersistFailed] = useState(false)
 
   const skipNextWrite = useRef(false)
 
@@ -18,9 +19,11 @@ export function useLocalStorage<T>(
     }
     try {
       localStorage.setItem(key, JSON.stringify(value))
+      setPersistFailed(false)
     } catch (error) {
       // Quota exceeded (e.g. very large vision images) or private mode.
       console.warn(`Could not persist "${key}" to localStorage.`, error)
+      setPersistFailed(true)
     }
   }, [key, value])
 
@@ -39,7 +42,7 @@ export function useLocalStorage<T>(
     return () => window.removeEventListener('storage', handleStorage)
   }, [key])
 
-  return [value, setValue] as const
+  return [value, setValue, persistFailed] as const
 }
 
 function readStoredValue<T>(

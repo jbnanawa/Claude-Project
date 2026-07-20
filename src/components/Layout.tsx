@@ -8,9 +8,10 @@ interface LayoutProps {
 }
 
 const NAV_ITEMS: { id: View; label: string }[] = [
-  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'dashboard', label: 'Today' },
   { id: 'goals', label: 'Goals' },
   { id: 'vision', label: 'Vision Board' },
+  { id: 'journal', label: 'Journal' },
 ]
 
 export function Layout({ view, onNavigate, children }: LayoutProps) {
@@ -63,7 +64,7 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
 
       <footer className="mx-auto w-full max-w-5xl px-4 pb-8 pt-4 sm:px-6">
         <p className="text-center text-xs text-ink-muted">
-          Glow Within · made with intention
+          Glow Within · made with love, just for you
         </p>
       </footer>
     </div>

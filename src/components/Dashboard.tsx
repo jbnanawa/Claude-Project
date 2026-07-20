@@ -1,14 +1,35 @@
-import { GOAL_CATEGORIES, CATEGORY_STYLES } from '../data/categories'
-import type { Goal, VisionItem, View } from '../types'
+import { CATEGORY_STYLES } from '../data/categories'
+import { dayKey } from '../lib/date'
+import type { Goal, JournalEntry, UserProfile, VisionItem, View } from '../types'
 import { AffirmationCard } from './AffirmationCard'
+import { GrowthJourneyCard } from './GrowthJourneyCard'
+import { MonthlyIntentionsPreview } from './MonthlyIntentionsPreview'
 
 interface DashboardProps {
   goals: Goal[]
   visions: VisionItem[]
-  onNavigate: (view: View) => void
+  journalEntries: JournalEntry[]
+  profile: UserProfile
+  onNavigate: (view: View, targetId?: string) => void
+  onToggleGoal: (id: string) => void
 }
 
-export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
+function timeGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 5) return 'Hello, night owl'
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+export function Dashboard({
+  goals,
+  visions,
+  journalEntries,
+  profile,
+  onNavigate,
+  onToggleGoal,
+}: DashboardProps) {
   const activeGoals = goals.filter((goal) => !goal.completed)
   const completedGoals = goals.filter((goal) => goal.completed)
   const achievedVisions = visions.filter((vision) => vision.achieved)
@@ -17,24 +38,48 @@ export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
     .slice(0, 3)
   const extraVisions = visions.length - recentVisions.length
 
-  const byCategory = GOAL_CATEGORIES.map((category) => ({
-    category,
-    count: goals.filter((goal) => goal.category === category && !goal.completed).length,
-  })).filter((item) => item.count > 0)
+  // Completed goals linger (struck through) for the day they were checked
+  // off, then leave the dashboard; they still live on the Goals page.
+  const todayKey = dayKey(new Date())
+  const todaysGoals = goals
+    .filter(
+      (goal) =>
+        !goal.completed ||
+        (goal.completedAt && dayKey(new Date(goal.completedAt)) === todayKey),
+    )
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
     <div className="space-y-8 sm:space-y-10">
       <header className="animate-fade-up">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blush-600 sm:text-sm">
-          Welcome back
+          {timeGreeting()}
         </p>
         <h1 className="mt-2 font-display text-4xl tracking-tight text-ink sm:text-5xl">
-          Glow Within
+          Hey {profile.name}, good to see you
         </h1>
         <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-soft">
-          A soft space for your goals, daily words, and the visions you are
-          calling into form.
+          Your little corner for goals, daily pep talks, and the dreams you're
+          making real.
         </p>
+        {profile.focusAreas.length > 0 ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-ink-muted">
+              You're focusing on:
+            </span>
+            {profile.focusAreas.map((area) => {
+              const style = CATEGORY_STYLES[area]
+              return (
+                <span
+                  key={area}
+                  className={`rounded-lg border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text} ${style.border}`}
+                >
+                  {area}
+                </span>
+              )
+            })}
+          </div>
+        ) : null}
       </header>
 
       <AffirmationCard />
@@ -44,42 +89,65 @@ export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
         style={{ animationDelay: '120ms' }}
         aria-label="Overview"
       >
-        <StatCard label="Active goals" value={activeGoals.length} />
-        <StatCard label="Completed" value={completedGoals.length} />
-        <StatCard label="Vision pieces" value={visions.length} />
-        <StatCard label="Achieved" value={achievedVisions.length} />
+        <StatCard label="Goals in motion" value={activeGoals.length} />
+        <StatCard label="Goals done" value={completedGoals.length} />
+        <StatCard label="Visions pinned" value={visions.length} />
+        <StatCard label="Dreams achieved" value={achievedVisions.length} />
       </section>
+
+      <GrowthJourneyCard entries={journalEntries} onNavigate={onNavigate} />
+
+      <MonthlyIntentionsPreview onNavigate={onNavigate} />
 
       <section
         className="grid gap-5 sm:gap-6 lg:grid-cols-2 animate-fade-up"
-        style={{ animationDelay: '180ms' }}
+        style={{ animationDelay: '220ms' }}
       >
-        <div className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-5 shadow-[0_8px_28px_rgba(61,50,48,0.04)] sm:p-6">
+        <div className="glass-card rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-xl text-ink sm:text-2xl">
-              Goals by category
+              Today's Goals
             </h2>
-            <LinkButton label="Manage" onClick={() => onNavigate('goals')} />
+            <LinkButton
+              label="Add goals"
+              onClick={() => onNavigate('goals', 'add-goal')}
+            />
           </div>
 
-          {byCategory.length === 0 ? (
+          {todaysGoals.length === 0 ? (
             <p className="mt-5 text-sm leading-relaxed text-ink-soft">
-              No active goals yet. Add one to begin shaping your path.
+              Nothing here yet — add your first goal and let's get things
+              moving.
             </p>
           ) : (
             <ul className="mt-5 space-y-2.5">
-              {byCategory.map(({ category, count }) => {
-                const style = CATEGORY_STYLES[category]
+              {todaysGoals.map((goal) => {
+                const style = CATEGORY_STYLES[goal.category]
                 return (
                   <li
-                    key={category}
-                    className={`flex items-center justify-between rounded-xl border px-3.5 py-2.5 ${style.bg} ${style.border}`}
+                    key={goal.id}
+                    className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 transition ${style.bg} ${style.border} ${
+                      goal.completed ? 'opacity-70' : ''
+                    }`}
                   >
-                    <span className={`text-sm font-medium ${style.text}`}>
-                      {category}
+                    <input
+                      type="checkbox"
+                      checked={goal.completed}
+                      onChange={() => onToggleGoal(goal.id)}
+                      className="h-4.5 w-4.5 shrink-0 cursor-pointer accent-blush-500"
+                      aria-label={`Mark ${goal.title} as ${goal.completed ? 'incomplete' : 'complete'}`}
+                    />
+                    <span
+                      className={`min-w-0 flex-1 truncate text-sm font-medium text-ink ${
+                        goal.completed ? 'line-through opacity-55' : ''
+                      }`}
+                    >
+                      {goal.title}
                     </span>
-                    <span className={`text-sm tabular-nums ${style.text}`}>
-                      {count} {count === 1 ? 'goal' : 'goals'}
+                    <span
+                      className={`shrink-0 rounded-lg border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text} ${style.border}`}
+                    >
+                      {goal.category}
                     </span>
                   </li>
                 )
@@ -88,18 +156,18 @@ export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
           )}
         </div>
 
-        <div className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-5 shadow-[0_8px_28px_rgba(61,50,48,0.04)] sm:p-6">
+        <div className="glass-card rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-xl text-ink sm:text-2xl">
               Vision board
             </h2>
-            <LinkButton label="Open board" onClick={() => onNavigate('vision')} />
+            <LinkButton label="View all" onClick={() => onNavigate('vision')} />
           </div>
 
           {recentVisions.length === 0 ? (
             <p className="mt-5 text-sm leading-relaxed text-ink-soft">
-              Your gallery is empty. Pin images that describe what you want to
-              manifest.
+              Nothing pinned yet. Add a few images of the life you're dreaming
+              up — future you will love looking back at them.
             </p>
           ) : (
             <div className="mt-5 grid grid-cols-3 gap-2.5">
@@ -128,6 +196,7 @@ export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
             </div>
           )}
         </div>
+
       </section>
     </div>
   )
@@ -135,7 +204,7 @@ export function Dashboard({ goals, visions, onNavigate }: DashboardProps) {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 px-4 py-4 shadow-[0_6px_20px_rgba(61,50,48,0.03)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(61,50,48,0.07)] sm:px-5">
+    <div className="glass-card rounded-2xl px-4 py-4 transition hover:-translate-y-0.5 sm:px-5">
       <p className="truncate text-xs text-ink-muted sm:text-sm">{label}</p>
       <p className="mt-1 font-display text-3xl tabular-nums text-ink sm:text-4xl">
         {value}

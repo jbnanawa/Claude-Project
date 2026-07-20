@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { createId } from '../lib/id'
+import { compressImage, isCompressibleDataUrl } from '../lib/image'
 import type { VisionItem } from '../types'
 
 interface VisionBoardProps {
@@ -74,16 +75,23 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      setError('Please choose an image file.')
+      setError("Hmm, that one isn't an image — try a photo instead.")
       return
     }
 
     const reader = new FileReader()
-    reader.onload = () => {
+    reader.onload = async () => {
       const result = typeof reader.result === 'string' ? reader.result : ''
-      setPreview(result)
-      setImageUrl('')
-      setError('')
+      try {
+        const stored = isCompressibleDataUrl(result)
+          ? await compressImage(result)
+          : result
+        setPreview(stored)
+        setImageUrl('')
+        setError('')
+      } catch {
+        setError("That image didn't want to cooperate. Mind trying another?")
+      }
     }
     reader.readAsDataURL(file)
   }
@@ -95,7 +103,9 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
     const trimmedDescription = description.trim()
 
     if (!trimmedTitle || !trimmedDescription || !source) {
-      setError('Add a title, description, and image to save this vision.')
+      setError(
+        'Almost there — it just needs a name, a little meaning, and an image.',
+      )
       return
     }
 
@@ -118,19 +128,19 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
     <div className="space-y-8">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-6 shadow-[0_8px_28px_rgba(61,50,48,0.04)] animate-fade-up"
+        className="glass-card rounded-2xl p-6 animate-fade-up"
       >
         <h2 className="font-display text-xl text-ink sm:text-2xl">
-          Add to your vision board
+          Add something to your board
         </h2>
         <p className="mt-1 text-sm text-ink-soft">
-          Save an image and describe what you want to manifest.
+          Drop in an image and tell me what it means to you.
         </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              Title
+              Give it a name
             </span>
             <input
               type="text"
@@ -143,20 +153,20 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
 
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              What I want to manifest
+              What does this one mean to you?
             </span>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="Describe the feeling, lifestyle, or outcome this image represents..."
+              placeholder="The feeling, the life, the moment you're picturing..."
               className="w-full resize-y rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
             />
           </label>
 
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              Image URL
+              Paste an image link
             </span>
             <input
               type="url"
@@ -173,7 +183,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
 
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              Or upload an image
+              Or upload one from your camera roll
             </span>
             <input
               type="file"
@@ -190,7 +200,11 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
               src={preview || imageUrl}
               alt="Vision preview"
               className="h-44 w-full object-cover"
-              onError={() => setError('That image could not be loaded. Try another URL or upload.')}
+              onError={() =>
+                setError(
+                  "That link didn't load for me. Try another one, or upload the image instead.",
+                )
+              }
             />
           </div>
         )}
@@ -201,15 +215,18 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
           type="submit"
           className="mt-6 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto"
         >
-          Add to board
+          Pin it to the board
         </button>
       </form>
 
       {sorted.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-12 text-center animate-fade-in">
-          <p className="font-display text-xl text-ink">Your board is waiting</p>
+          <p className="font-display text-xl text-ink">
+            Your board is ready when you are
+          </p>
           <p className="mt-2 text-sm text-ink-soft">
-            Add images that mirror the life you are calling in.
+            Pin a few images of the life you're dreaming about — go on, have
+            fun with it.
           </p>
         </div>
       ) : (
@@ -217,7 +234,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
           <div
             role="tablist"
             aria-label="Vision filter"
-            className="inline-flex items-center gap-1 rounded-xl border border-blush-200/70 bg-surface-solid/90 p-1"
+            className="glass-card inline-flex items-center gap-1 rounded-xl p-1"
           >
             <button
               type="button"
@@ -251,18 +268,22 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
             <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
               {tab === 'archived' ? (
                 <>
-                  <p className="font-display text-xl text-ink">Nothing archived yet</p>
+                  <p className="font-display text-xl text-ink">
+                    Nothing in the archive yet
+                  </p>
                   <p className="mt-2 text-sm text-ink-soft">
-                    Visions you mark as achieved will rest here.
+                    When a vision comes true, it'll rest here — and that day is
+                    coming.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-display text-xl text-ink">
-                    Everything is achieved
+                    You achieved every single one
                   </p>
                   <p className="mt-2 text-sm text-ink-soft">
-                    Add a new vision or revisit your archive to celebrate.
+                    Seriously, that's amazing. Dream up a new one, or scroll
+                    the archive and soak it in.
                   </p>
                 </>
               )}
@@ -272,7 +293,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
           {visible.map((item, index) => (
             <article
               key={item.id}
-              className="group rounded-2xl border border-blush-200/70 bg-surface-solid/90 shadow-[0_8px_24px_rgba(61,50,48,0.04)] transition hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(61,50,48,0.08)] animate-fade-up"
+              className="glass-card group rounded-2xl transition hover:-translate-y-1 animate-fade-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-blush-100">
@@ -323,15 +344,11 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
                         <h3 className="font-display text-lg text-ink">{item.title}</h3>
-                        <span
-                          className={`rounded-lg border px-2 py-0.5 text-xs font-medium ${
-                            item.achieved
-                              ? 'border-sage-200 bg-sage-100 text-sage-600'
-                              : 'border-mist-200 bg-mist-100 text-mist-600'
-                          }`}
-                        >
-                          {item.achieved ? 'Achieved' : 'In progress'}
-                        </span>
+                        {item.achieved ? (
+                          <span className="rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
+                            Achieved
+                          </span>
+                        ) : null}
                       </div>
                       <div className="relative shrink-0" data-vision-menu>
                         <button
@@ -358,7 +375,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
                         {openMenuId === item.id ? (
                           <div
                             role="menu"
-                            className="absolute right-0 top-full z-10 mt-1 w-44 rounded-xl border border-blush-200 bg-surface-solid p-1 shadow-[0_10px_30px_rgba(61,50,48,0.12)]"
+                            className="glass-menu absolute right-0 top-full z-10 mt-1 w-44 rounded-xl p-1"
                           >
                             <button
                               type="button"

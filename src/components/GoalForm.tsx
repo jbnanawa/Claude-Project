@@ -33,12 +33,15 @@ export function GoalForm({ onAdd }: GoalFormProps) {
 
   return (
     <form
+      id="add-goal"
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-blush-200/70 bg-surface-solid/90 p-6 shadow-[0_8px_28px_rgba(61,50,48,0.04)] animate-fade-up"
+      className="glass-card scroll-mt-24 rounded-2xl p-6 animate-fade-up"
     >
-      <h2 className="font-display text-xl text-ink sm:text-2xl">Add a goal</h2>
+      <h2 className="font-display text-xl text-ink sm:text-2xl">
+        What are we working toward?
+      </h2>
       <p className="mt-1 text-sm text-ink-soft">
-        Choose a category and write what you want to grow toward.
+        Pick a category and tell me what you're reaching for.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -75,13 +78,14 @@ export function GoalForm({ onAdd }: GoalFormProps) {
 
         <label className="block sm:col-span-2">
           <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-            Notes <span className="font-normal text-ink-muted">(optional)</span>
+            Why this one?{' '}
+            <span className="font-normal text-ink-muted">(optional)</span>
           </span>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            placeholder="Why this matters to you..."
+            placeholder="A little note to remind you why this matters..."
             className="w-full resize-y rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
           />
         </label>
@@ -91,7 +95,7 @@ export function GoalForm({ onAdd }: GoalFormProps) {
         type="submit"
         className="mt-6 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto"
       >
-        Save goal
+        Add it to the list
       </button>
     </form>
   )
