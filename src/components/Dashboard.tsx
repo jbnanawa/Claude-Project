@@ -30,9 +30,6 @@ export function Dashboard({
   onNavigate,
   onToggleGoal,
 }: DashboardProps) {
-  const activeGoals = goals.filter((goal) => !goal.completed)
-  const completedGoals = goals.filter((goal) => goal.completed)
-  const achievedVisions = visions.filter((vision) => vision.achieved)
   const recentVisions = [...visions]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 3)
@@ -56,7 +53,7 @@ export function Dashboard({
           {timeGreeting()}
         </p>
         <h1 className="mt-2 font-display text-4xl tracking-tight text-ink sm:text-5xl">
-          Hey {profile.name}, good to see you
+          {profile.name}
         </h1>
         <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-soft">
           Your little corner for goals, daily pep talks, and the dreams you're
@@ -84,17 +81,6 @@ export function Dashboard({
 
       <AffirmationCard />
 
-      <section
-        className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 animate-fade-up"
-        style={{ animationDelay: '120ms' }}
-        aria-label="Overview"
-      >
-        <StatCard label="Goals in motion" value={activeGoals.length} />
-        <StatCard label="Goals done" value={completedGoals.length} />
-        <StatCard label="Visions pinned" value={visions.length} />
-        <StatCard label="Dreams achieved" value={achievedVisions.length} />
-      </section>
-
       <GrowthJourneyCard entries={journalEntries} onNavigate={onNavigate} />
 
       <MonthlyIntentionsPreview onNavigate={onNavigate} />
@@ -103,7 +89,7 @@ export function Dashboard({
         className="grid gap-5 sm:gap-6 lg:grid-cols-2 animate-fade-up"
         style={{ animationDelay: '220ms' }}
       >
-        <div className="glass-card rounded-2xl p-5 sm:p-6">
+        <div className="glass-card p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-xl text-ink sm:text-2xl">
               Today's Goals
@@ -156,7 +142,7 @@ export function Dashboard({
           )}
         </div>
 
-        <div className="glass-card rounded-2xl p-5 sm:p-6">
+        <div className="glass-card p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-xl text-ink sm:text-2xl">
               Vision board
@@ -198,17 +184,6 @@ export function Dashboard({
         </div>
 
       </section>
-    </div>
-  )
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="glass-card rounded-2xl px-4 py-4 transition hover:-translate-y-0.5 sm:px-5">
-      <p className="truncate text-xs text-ink-muted sm:text-sm">{label}</p>
-      <p className="mt-1 font-display text-3xl tabular-nums text-ink sm:text-4xl">
-        {value}
-      </p>
     </div>
   )
 }

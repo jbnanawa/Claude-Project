@@ -2,12 +2,16 @@ import { useState, type FormEvent } from 'react'
 import { CATEGORY_STYLES, GOAL_CATEGORIES } from '../data/categories'
 import type { GoalCategory, UserProfile } from '../types'
 
-interface OnboardingProps {
-  onComplete: (profile: UserProfile) => void
-}
-
 const STEPS = ['welcome', 'name', 'focus'] as const
 type Step = (typeof STEPS)[number]
+
+interface OnboardingProps {
+  onComplete: (profile: UserProfile) => void
+  /** Optional starting step — used for deep links / Figma capture. */
+  initialStep?: Step
+  initialName?: string
+  initialFocusAreas?: GoalCategory[]
+}
 
 const CATEGORY_BLURBS: Record<GoalCategory, string> = {
   Wellness: 'Rest, movement, and care',
@@ -18,10 +22,15 @@ const CATEGORY_BLURBS: Record<GoalCategory, string> = {
   Creativity: 'Making and expressing',
 }
 
-export function Onboarding({ onComplete }: OnboardingProps) {
-  const [step, setStep] = useState<Step>('welcome')
-  const [name, setName] = useState('')
-  const [focusAreas, setFocusAreas] = useState<GoalCategory[]>([])
+export function Onboarding({
+  onComplete,
+  initialStep = 'welcome',
+  initialName = '',
+  initialFocusAreas = [],
+}: OnboardingProps) {
+  const [step, setStep] = useState<Step>(initialStep)
+  const [name, setName] = useState(initialName)
+  const [focusAreas, setFocusAreas] = useState<GoalCategory[]>(initialFocusAreas)
 
   const stepIndex = STEPS.indexOf(step)
 
@@ -51,7 +60,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       <div className="w-full max-w-lg">
         <div
           key={step}
-          className="glass-card rounded-3xl p-6 animate-fade-up sm:p-10"
+          className="glass-card p-6 animate-fade-up sm:p-10"
         >
           {step === 'welcome' && (
             <div className="text-center">

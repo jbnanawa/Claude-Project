@@ -94,7 +94,7 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
             return (
               <li
                 key={goal.id}
-                className="glass-card rounded-2xl p-4 transition hover:-translate-y-0.5 animate-fade-up"
+                className="glass-card p-4 transition hover:-translate-y-0.5 animate-fade-up"
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 <div className="flex items-start gap-3">
@@ -118,15 +118,6 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
                         className={`rounded-lg border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text} ${style.border}`}
                       >
                         {goal.category}
-                      </span>
-                      <span
-                        className={`rounded-lg border px-2 py-0.5 text-xs font-medium ${
-                          goal.completed
-                            ? 'border-sage-200 bg-sage-100 text-sage-600'
-                            : 'border-mist-200 bg-mist-100 text-mist-600'
-                        }`}
-                      >
-                        {goal.completed ? 'Completed' : 'In progress'}
                       </span>
                     </div>
                     {goal.notes ? (

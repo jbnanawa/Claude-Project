@@ -1,57 +1,18 @@
 import { createPortal } from 'react-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { dayKey } from '../lib/date'
+import {
+  GARDEN_STAGES,
+  plantedDays,
+  stageIndexForDays,
+} from '../lib/garden'
 import type { JournalEntry, View } from '../types'
+import { SeasonIcon } from './SeasonIcon'
 
 interface GrowthJourneyCardProps {
   entries: JournalEntry[]
   onNavigate: (view: View) => void
 }
-
-const STAGES = [
-  {
-    at: 1,
-    emoji: '\u{1F331}',
-    label: 'Seed',
-    message: "You've planted the first seed of your future.",
-  },
-  {
-    at: 3,
-    emoji: '\u{1F33F}',
-    label: 'Sprout',
-    message: 'Your consistency is taking root.',
-  },
-  {
-    at: 7,
-    emoji: '\u{1F338}',
-    label: 'Bloom',
-    message: 'Your inner light is beginning to shine.',
-  },
-  {
-    at: 14,
-    emoji: '\u{1F337}',
-    label: 'Garden',
-    message: "You've cultivated a life worth nurturing.",
-  },
-  {
-    at: 30,
-    emoji: '\u{1F333}',
-    label: 'Forest',
-    message: 'Your growth now inspires those around you.',
-  },
-  {
-    at: 60,
-    emoji: '\u2728',
-    label: 'Sanctuary',
-    message: "You've created a place of peace within.",
-  },
-  {
-    at: 100,
-    emoji: '\u{1F30C}',
-    label: 'Glow Within',
-    message: 'Your dreams and daily actions are now beautifully aligned.',
-  },
-]
 
 // Ambient magic that appears in the card as the garden grows — no badges,
 // the dashboard just quietly becomes prettier.
@@ -103,23 +64,15 @@ export function GrowthJourneyCard({
   const today = new Date()
   const todayKey = dayKey(today)
 
-  // Chronological set of watered days.
-  const wateredDays = new Set<string>()
-  for (const entry of entries) {
-    wateredDays.add(dayKey(new Date(entry.createdAt)))
-  }
-  const plantedDays = [...wateredDays].sort((a, b) => a.localeCompare(b))
-
-  const totalDays = plantedDays.length
+  const planted = plantedDays(entries)
+  const wateredDays = new Set(planted)
+  const totalDays = planted.length
   const wateredToday = wateredDays.has(todayKey)
 
   // -1 until the first check-in plants the seed.
-  const stageIndex = STAGES.reduce(
-    (current, item, index) => (totalDays >= item.at ? index : current),
-    -1,
-  )
-  const stage = stageIndex >= 0 ? STAGES[stageIndex] : null
-  const nextStage = STAGES[stageIndex + 1]
+  const stageIndex = stageIndexForDays(totalDays)
+  const stage = stageIndex >= 0 ? GARDEN_STAGES[stageIndex] : null
+  const nextStage = GARDEN_STAGES[stageIndex + 1]
   const daysToNext = nextStage ? nextStage.at - totalDays : 0
 
   // Fill toward the next season overall (not from the current season's start),
@@ -148,12 +101,15 @@ export function GrowthJourneyCard({
 
   const unlockedMagic = DECORATIONS.filter((item) => totalDays >= item.at)
 
+  // Week circles mirror the current season plant.
+  const weekPlantId = stage ? stage.id : GARDEN_STAGES[0].id
+
   const celebration =
     stage && stageIndex > celebrated ? { ...stage, index: stageIndex } : null
 
   return (
     <section
-      className="glass-card relative overflow-hidden rounded-2xl p-5 animate-fade-up sm:p-6"
+      className="glass-card relative overflow-hidden p-5 animate-fade-up sm:p-6"
       style={{ animationDelay: '150ms' }}
       aria-label="Your growth journey"
     >
@@ -183,13 +139,16 @@ export function GrowthJourneyCard({
 
           <div className="mt-5 flex items-center gap-4">
             <span
-              className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-sage-100 text-4xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:h-20 sm:w-20 sm:text-5xl ${
-                stage ? '' : 'opacity-50 grayscale'
+              className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-sage-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:h-20 sm:w-20 ${
+                stage ? '' : 'opacity-50'
               }`}
               aria-hidden="true"
             >
               <span className="animate-sprout-grow">
-                {stage ? stage.emoji : STAGES[0].emoji}
+                <SeasonIcon
+                  id={stage ? stage.id : GARDEN_STAGES[0].id}
+                  className="h-12 w-12 sm:h-16 sm:w-16"
+                />
               </span>
             </span>
             <div>
@@ -234,16 +193,16 @@ export function GrowthJourneyCard({
                   }}
                 />
               </div>
-              <p className="mt-2 text-sm text-ink-soft">
-                <span aria-hidden="true">{nextStage.emoji}</span>{' '}
+              <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-soft">
+                <SeasonIcon id={nextStage.id} className="h-5 w-5" />
                 {nextStage.label} in {daysToNext} more{' '}
                 {daysToNext === 1 ? 'day' : 'days'}
               </p>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-ink-soft">
-              <span aria-hidden="true">{'\u{1F30C}'}</span> You've reached every
-              season — keep watering.
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-soft">
+              <SeasonIcon id="glow-within" className="h-5 w-5" />
+              You've reached every season — keep watering.
             </p>
           )}
 
@@ -272,7 +231,7 @@ export function GrowthJourneyCard({
                           ? 'Not yet'
                           : "Didn't bloom — that's okay"
                   }
-                  className={`mx-auto grid h-9 w-9 place-items-center rounded-full text-base ${
+                  className={`mx-auto grid h-9 w-9 place-items-center rounded-full ${
                     day.watered
                       ? 'bg-white shadow-[inset_0_0_0_1px_rgba(213,224,214,0.9)]'
                       : day.isToday
@@ -281,7 +240,11 @@ export function GrowthJourneyCard({
                   } ${day.isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
                   aria-hidden="true"
                 >
-                  {day.watered || day.isToday ? '\u{1F338}' : ''}
+                  {day.watered ? (
+                    <SeasonIcon id={weekPlantId} className="h-5 w-5" />
+                  ) : day.isToday ? (
+                    <SeasonIcon id="water" className="h-5 w-5 opacity-40" />
+                  ) : null}
                 </span>
                 <span
                   className="mt-1.5 block text-[0.65rem] font-medium uppercase tracking-wide text-ink-muted"
@@ -298,19 +261,22 @@ export function GrowthJourneyCard({
       <button
         type="button"
         onClick={() => onNavigate('journal')}
-        className={`relative mt-6 w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+        className={`relative mt-6 w-full sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
           wateredToday
             ? 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-sage-200 bg-sage-100 px-3.5 py-2.5 text-sm font-medium text-sage-600 transition hover:bg-sage-200/70'
-            : 'rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99]'
+            : 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99]'
         }`}
       >
         {wateredToday ? (
           <>
-            <span aria-hidden="true">{'\u{1F4A7}'}</span> Watered for today —
+            <SeasonIcon id="water" className="h-5 w-5" /> Watered for today —
             your gratitude is growing
           </>
         ) : (
-          <>Plant a gratitude to grow today {'\u{1F331}'}</>
+          <>
+            Plant a gratitude to grow today
+            <SeasonIcon id="seed" className="h-5 w-5 brightness-0 invert" />
+          </>
         )}
       </button>
 
@@ -327,10 +293,10 @@ export function GrowthJourneyCard({
                   A new season begins
                 </p>
                 <span
-                  className="mx-auto mt-5 grid h-20 w-20 place-items-center rounded-2xl bg-sage-100 text-5xl animate-soft-pulse"
+                  className="mx-auto mt-5 grid h-20 w-20 place-items-center rounded-2xl bg-sage-100 animate-soft-pulse"
                   aria-hidden="true"
                 >
-                  {celebration.emoji}
+                  <SeasonIcon id={celebration.id} className="h-12 w-12" />
                 </span>
                 <h2 className="mt-5 font-display text-3xl tracking-tight text-ink">
                   {celebration.label === 'Sanctuary'

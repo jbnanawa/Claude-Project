@@ -128,7 +128,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
     <div className="space-y-8">
       <form
         onSubmit={handleSubmit}
-        className="glass-card rounded-2xl p-6 animate-fade-up"
+        className="glass-card p-6 animate-fade-up"
       >
         <h2 className="font-display text-xl text-ink sm:text-2xl">
           Add something to your board
@@ -293,7 +293,7 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
           {visible.map((item, index) => (
             <article
               key={item.id}
-              className="glass-card group rounded-2xl transition hover:-translate-y-1 animate-fade-up"
+              className="glass-card group transition hover:-translate-y-1 animate-fade-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-blush-100">

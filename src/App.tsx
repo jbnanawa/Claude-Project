@@ -87,7 +87,27 @@ function isProfileOrNull(value: unknown): value is UserProfile | null {
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('dashboard')
+  const captureParams = new URLSearchParams(window.location.search)
+  const captureView = captureParams.get('view')
+  const captureOnboarding = captureView === 'onboarding'
+  const captureStep = captureParams.get('step')
+  const onboardingStep =
+    captureStep === 'name' || captureStep === 'focus' || captureStep === 'welcome'
+      ? captureStep
+      : 'welcome'
+
+  const [view, setView] = useState<View>(() => {
+    const next = captureView
+    if (
+      next === 'dashboard' ||
+      next === 'journal' ||
+      next === 'goals' ||
+      next === 'vision'
+    ) {
+      return next
+    }
+    return 'dashboard'
+  })
   const scrollTarget = useRef<string | null>(null)
 
   function navigateTo(nextView: View, targetId?: string) {
@@ -123,6 +143,16 @@ export default function App() {
   )
   const persistFailed =
     goalsPersistFailed || visionsPersistFailed || journalPersistFailed
+
+  // Capture deep-links (`?view=…`) need a profile so we don't land on onboarding.
+  const captureProfile: UserProfile = {
+    name: 'Janelle',
+    focusAreas: ['Wellness', 'Mindset', 'Creativity'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+  }
+  const activeProfile =
+    profile ??
+    (captureView && !captureOnboarding ? captureProfile : null)
 
   // One-time migration: shrink oversized images saved before compression
   // existed, so the board stays under the localStorage quota.
@@ -216,8 +246,19 @@ export default function App() {
     )
   }
 
-  if (!profile) {
-    return <Onboarding onComplete={setProfile} />
+  if (!activeProfile || captureOnboarding) {
+    return (
+      <Onboarding
+        onComplete={setProfile}
+        initialStep={captureOnboarding ? onboardingStep : 'welcome'}
+        initialName={captureOnboarding && onboardingStep !== 'welcome' ? 'Janelle' : ''}
+        initialFocusAreas={
+          captureOnboarding && onboardingStep === 'focus'
+            ? ['Wellness', 'Mindset']
+            : []
+        }
+      />
+    )
   }
 
   return (
@@ -238,7 +279,7 @@ export default function App() {
           goals={goals}
           visions={visions}
           journalEntries={journalEntries}
-          profile={profile}
+          profile={activeProfile}
           onNavigate={navigateTo}
           onToggleGoal={toggleGoal}
         />
@@ -248,10 +289,11 @@ export default function App() {
         <div className="space-y-8 sm:space-y-10">
           <header className="animate-fade-up">
             <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              Goals
+              Intentions
             </h1>
             <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              Little promises to yourself — big or small, they all count.
+              Set your month's focus, then tend the little promises that grow
+              it — big or small, they all count.
             </p>
           </header>
           <MonthlyIntentionsCard />
@@ -293,11 +335,12 @@ export default function App() {
         <div className="space-y-8 sm:space-y-10">
           <header className="animate-fade-up">
             <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              Journal
+              Garden
             </h1>
             <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              A little space to check in with yourself — how you're feeling,
-              what you're thankful for, and whatever else is on your mind.
+              Every day you show up is one drop of water. Plant a gratitude,
+              watch your seasons grow, and leave the rest of your mind here
+              too.
             </p>
           </header>
           <Journal

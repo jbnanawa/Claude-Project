@@ -47,9 +47,9 @@ export interface MonthlyIntentions {
   month: string
   focus: string
   priorities: string[]
-  /** Parallel to priorities; a checked-off priority "blooms". */
+  /** Parallel to priorities; true when a priority is fully completed. */
   prioritiesDone?: boolean[]
-  /** Weeks lived toward each priority (0–4). Four weeks = bloomed. */
+  /** Weeks lived toward each priority (0–4). Four weeks = completed. */
   priorityWeeks?: number[]
   notes: string
 }

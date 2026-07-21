@@ -6,7 +6,7 @@ import {
   currentMonthKey,
   emptyIntentions,
   isMonthlyIntentions,
-  plantForWeeks,
+  weekLabel,
   withDone,
 } from '../lib/intentions'
 import type { MonthlyIntentions } from '../types'
@@ -50,7 +50,7 @@ export function MonthlyIntentionsCard() {
   })
 
   const filledPriorities = draft.priorities.filter((item) => item.trim()).length
-  const bloomedCount = draftWeeks.filter(
+  const completedCount = draftWeeks.filter(
     (weeks, index) =>
       draft.priorities[index]?.trim() && weeks >= WEEKS_PER_PRIORITY,
   ).length
@@ -135,7 +135,7 @@ export function MonthlyIntentionsCard() {
 
   return (
     <section
-      className="glass-card rounded-2xl p-5 animate-fade-up sm:p-6"
+      className="glass-card p-5 animate-fade-up sm:p-6"
       style={{ animationDelay: '150ms' }}
       aria-label="Monthly intentions"
     >
@@ -146,7 +146,7 @@ export function MonthlyIntentionsCard() {
         <p className="text-sm text-ink-muted">{monthLabel}</p>
       </div>
       <p className="mt-1 text-sm text-ink-soft">
-        One focus, a few priorities, growing all month.
+        One focus, a few priorities — checked off week by week.
       </p>
 
       <div className="mt-5 space-y-5">
@@ -169,7 +169,7 @@ export function MonthlyIntentionsCard() {
             {draft.priorities.map((priority, index) => {
               const weeks = draftWeeks[index] ?? 0
               const hasText = priority.trim().length > 0
-              const plant = plantForWeeks(weeks)
+              const status = weekLabel(weeks)
               const complete = weeks >= WEEKS_PER_PRIORITY
 
               return (
@@ -200,19 +200,22 @@ export function MonthlyIntentionsCard() {
                           }`}
                         />
                         <span
-                          className="grid h-7 w-7 shrink-0 place-items-center text-base"
-                          aria-hidden="true"
+                          className={`shrink-0 text-xs font-medium ${
+                            complete
+                              ? 'text-sage-600'
+                              : weeks > 0
+                                ? 'text-ink-soft'
+                                : 'text-ink-muted'
+                          }`}
                           title={
                             complete
-                              ? 'Bloomed'
+                              ? 'Completed'
                               : weeks > 0
                                 ? `${weeks} of ${WEEKS_PER_PRIORITY} weeks`
                                 : 'Not started'
                           }
                         >
-                          {plant || (
-                            <span className="h-1.5 w-1.5 rounded-full bg-blush-200" />
-                          )}
+                          {status}
                         </span>
                         {draft.priorities.length > 1 ? (
                           <button
@@ -317,26 +320,26 @@ export function MonthlyIntentionsCard() {
 
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-sage-100 px-4 py-3">
           <p className="text-sm font-medium text-sage-600">
-            This month's bouquet
+            This month's progress
           </p>
           <div className="flex items-center gap-2.5">
             <span className="text-sm tabular-nums text-sage-600">
-              {bloomedCount} of {filledPriorities || draft.priorities.length}
+              {completedCount} of {filledPriorities || draft.priorities.length}
             </span>
             <div
               className="h-1.5 w-16 overflow-hidden rounded-full bg-sage-200/80 sm:w-20"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={filledPriorities || draft.priorities.length}
-              aria-valuenow={bloomedCount}
-              aria-label="Bloomed priorities this month"
+              aria-valuenow={completedCount}
+              aria-label="Completed priorities this month"
             >
               <div
                 className="h-full rounded-full bg-sage-600 transition-all duration-500"
                 style={{
                   width: `${
                     filledPriorities > 0
-                      ? (bloomedCount / filledPriorities) * 100
+                      ? (completedCount / filledPriorities) * 100
                       : 0
                   }%`,
                 }}

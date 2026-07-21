@@ -25,7 +25,7 @@ export function withDone(intentions: MonthlyIntentions): MonthlyIntentions {
     if (typeof stored === 'number' && Number.isFinite(stored)) {
       return Math.max(0, Math.min(WEEKS_PER_PRIORITY, Math.round(stored)))
     }
-    // Older data: a bloomed priority counts as a full month of weeks.
+    // Older data: a completed priority counts as a full month of weeks.
     return intentions.prioritiesDone?.[index] === true ? WEEKS_PER_PRIORITY : 0
   })
 
@@ -36,12 +36,11 @@ export function withDone(intentions: MonthlyIntentions): MonthlyIntentions {
   }
 }
 
-/** Plant emoji that grows with weeks lived toward a priority. */
-export function plantForWeeks(weeks: number): string {
-  if (weeks >= WEEKS_PER_PRIORITY) return '\u{1F337}'
-  if (weeks >= 2) return '\u{1F33F}'
-  if (weeks >= 1) return '\u{1F331}'
-  return ''
+/** Short status for a priority's weekly progress. */
+export function weekLabel(weeks: number): string {
+  if (weeks >= WEEKS_PER_PRIORITY) return 'Completed'
+  if (weeks <= 0) return 'Not started'
+  return `Week ${weeks}`
 }
 
 export function isMonthlyIntentions(

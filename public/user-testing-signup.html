@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Glow Within — User testing signup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Figtree:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blush: #f4c4b8;
+        --blush-deep: #c47a6a;
+        --ink: #3d3230;
+        --soft: #6b5a56;
+        --cream: #fff8f5;
+        --card: rgba(255, 255, 255, 0.72);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Figtree, system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 10% -10%, #ffe4dc 0%, transparent 55%),
+          radial-gradient(900px 500px at 100% 0%, #f7e8d8 0%, transparent 50%),
+          var(--cream);
+      }
+      main {
+        width: min(560px, calc(100% - 2rem));
+        margin: 2.5rem auto 4rem;
+      }
+      .card {
+        background: var(--card);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(196, 122, 106, 0.22);
+        border-radius: 1.5rem;
+        padding: 1.75rem;
+        box-shadow: 0 18px 50px rgba(61, 50, 48, 0.08);
+      }
+      h1 {
+        font-family: Fraunces, Georgia, serif;
+        font-weight: 550;
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+        margin: 0.35rem 0 0.5rem;
+      }
+      .eyebrow {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--blush-deep);
+      }
+      p {
+        color: var(--soft);
+        line-height: 1.55;
+      }
+      label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 1.1rem 0 0.4rem;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(196, 122, 106, 0.35);
+        background: #fffaf8;
+        border-radius: 0.85rem;
+        padding: 0.75rem 0.9rem;
+        font: inherit;
+        color: var(--ink);
+      }
+      textarea {
+        min-height: 5.5rem;
+        resize: vertical;
+      }
+      .row {
+        display: grid;
+        gap: 0.45rem;
+      }
+      .checks label {
+        font-weight: 500;
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        margin: 0.35rem 0;
+      }
+      .checks input {
+        width: auto;
+        margin-top: 0.2rem;
+      }
+      button {
+        margin-top: 1.4rem;
+        width: 100%;
+        border: 0;
+        border-radius: 0.9rem;
+        padding: 0.9rem 1rem;
+        background: #e8927f;
+        color: white;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--blush-deep);
+      }
+      .hint {
+        font-size: 0.85rem;
+        color: var(--soft);
+        margin-top: 0.75rem;
+      }
+      .done {
+        display: none;
+      }
+      body.is-done form {
+        display: none;
+      }
+      body.is-done .done {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <p class="eyebrow">Glow Within</p>
+        <h1>User testing signup</h1>
+        <p>
+          ~25–30 minutes on a video call. You’ll try a few tasks and think out
+          loud — no right answers. Data in the app stays in your browser.
+        </p>
+
+        <form id="signup" novalidate>
+          <label for="name">Full name *</label>
+          <input id="name" name="name" required autocomplete="name" />
+
+          <label for="email">Email *</label>
+          <input id="email" name="email" type="email" required autocomplete="email" />
+
+          <label for="times">Preferred session times *</label>
+          <textarea
+            id="times"
+            name="times"
+            required
+            placeholder="2–3 windows this week, include your timezone"
+          ></textarea>
+
+          <label for="device">Device you’ll use *</label>
+          <select id="device" name="device" required>
+            <option value="">Select…</option>
+            <option>Phone</option>
+            <option>Laptop / desktop</option>
+            <option>Either is fine</option>
+          </select>
+
+          <label for="apps">Used a journal, mood, or goals app lately? *</label>
+          <select id="apps" name="apps" required>
+            <option value="">Select…</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Prefer not to say</option>
+          </select>
+
+          <label for="recording">Recording preference *</label>
+          <select id="recording" name="recording" required>
+            <option value="">Select…</option>
+            <option>Video / screen is okay</option>
+            <option>Audio only</option>
+            <option>Notes only (no recording)</option>
+          </select>
+
+          <label>Consent *</label>
+          <div class="checks">
+            <label
+              ><input type="checkbox" name="c1" required /> I’m 18+ (or have
+              guardian permission)</label
+            >
+            <label
+              ><input type="checkbox" name="c2" required /> I understand this is
+              feedback on the product, not a test of me</label
+            >
+            <label
+              ><input type="checkbox" name="c3" required /> Notes may be taken
+              for product improvement</label
+            >
+          </div>
+
+          <label for="notes">Anything I should know?</label>
+          <textarea id="notes" name="notes" placeholder="Optional"></textarea>
+
+          <button type="submit">Submit signup</button>
+          <p class="hint">
+            Submissions open in your email app so responses land in your inbox.
+            To collect in a spreadsheet instead, point this form at Formspree or
+            a Google Form (see <code>scheduling.md</code>).
+          </p>
+        </form>
+
+        <div class="done">
+          <h1>You’re on the list</h1>
+          <p>
+            Thanks — I’ll follow up by email with a time and how we’ll access the
+            app. You can close this tab.
+          </p>
+        </div>
+      </div>
+    </main>
+    <script>
+      const form = document.getElementById('signup')
+      form.addEventListener('submit', (event) => {
+        event.preventDefault()
+        if (!form.reportValidity()) return
+        const data = new FormData(form)
+        const body = [
+          `Name: ${data.get('name')}`,
+          `Email: ${data.get('email')}`,
+          `Times: ${data.get('times')}`,
+          `Device: ${data.get('device')}`,
+          `Prior apps: ${data.get('apps')}`,
+          `Recording: ${data.get('recording')}`,
+          `Notes: ${data.get('notes') || '(none)'}`,
+          `Consent: yes`,
+        ].join('\n')
+        const subject = encodeURIComponent('Glow Within user testing signup')
+        const mailto = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`
+        window.location.href = mailto
+        document.body.classList.add('is-done')
+      })
+    </script>
+  </body>
+</html>

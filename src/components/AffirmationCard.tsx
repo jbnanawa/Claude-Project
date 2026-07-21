@@ -14,7 +14,7 @@ export function AffirmationCard({ compact = false }: AffirmationCardProps) {
 
   return (
     <section
-      className={`glass-card relative overflow-hidden rounded-2xl animate-fade-up ${
+      className={`glass-card relative overflow-hidden animate-fade-up ${
         compact ? 'p-5' : 'p-7 sm:p-8'
       }`}
       style={{ animationDelay: '80ms' }}

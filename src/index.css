@@ -45,10 +45,10 @@
     font-family: var(--font-sans);
     color: var(--color-ink);
     background:
-      radial-gradient(ellipse 80% 50% at 10% 0%, #f3d6d0 0%, transparent 55%),
-      radial-gradient(ellipse 70% 45% at 90% 10%, #eef3ee 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 50% 100%, #f8e4d8 0%, transparent 55%),
-      linear-gradient(160deg, #fff8f5 0%, #fdf0eb 40%, #f7f3ef 100%);
+      radial-gradient(ellipse 80% 50% at 10% 0%, #fceee9 0%, transparent 55%),
+      radial-gradient(ellipse 70% 45% at 90% 10%, #f5f8f5 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, #fff3ec 0%, transparent 55%),
+      linear-gradient(160deg, #fffcfb 0%, #fff9f7 40%, #faf8f6 100%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
   }
@@ -82,15 +82,17 @@
     font-family: var(--font-display);
   }
 
-  /* Liquid glass surface: translucent gradient over a backdrop blur, with
-     inset highlights that catch the light like frosted glass. */
+  /* Liquid glass surface: soft translucent gradient over a backdrop blur,
+     with inset highlights that catch the light like frosted glass. */
   .glass-card {
+    box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 24px;
     background: linear-gradient(
       135deg,
-      rgba(255, 253, 251, 0.62) 0%,
-      rgba(255, 248, 245, 0.38) 50%,
-      rgba(255, 253, 251, 0.55) 100%
+      rgba(255, 253, 251, 0.124) 0%,
+      rgba(255, 248, 245, 0.076) 50%,
+      rgba(255, 253, 251, 0.11) 100%
     );
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     backdrop-filter: blur(20px) saturate(1.6);

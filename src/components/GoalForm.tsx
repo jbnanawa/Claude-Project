@@ -35,7 +35,7 @@ export function GoalForm({ onAdd }: GoalFormProps) {
     <form
       id="add-goal"
       onSubmit={handleSubmit}
-      className="glass-card scroll-mt-24 rounded-2xl p-6 animate-fade-up"
+      className="glass-card scroll-mt-24 p-6 animate-fade-up"
     >
       <h2 className="font-display text-xl text-ink sm:text-2xl">
         What are we working toward?

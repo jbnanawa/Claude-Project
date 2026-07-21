@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import { MOOD_STYLES } from '../data/moods'
+import { useEffect, useRef, useState } from 'react'
 import { dayKey } from '../lib/date'
+import {
+  GARDEN_STAGES,
+  currentStage,
+  plantedDays,
+  stageForDay,
+} from '../lib/garden'
 import type { JournalEntry } from '../types'
+import { SeasonIcon } from './SeasonIcon'
 
 interface JournalCalendarProps {
   entries: JournalEntry[]
   selectedDay: string | null
   onSelectDay: (day: string | null) => void
 }
-
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 export function JournalCalendar({
   entries,
@@ -20,18 +24,25 @@ export function JournalCalendar({
   const [month, setMonth] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
   )
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<HTMLElement | null>(null)
 
-  // Latest entry per day decides which mood shows on the calendar.
-  const moodByDay = new Map<string, JournalEntry>()
+  const planted = plantedDays(entries)
+  const season = currentStage(entries) ?? GARDEN_STAGES[0]
+
+  // Latest entry per day marks the calendar.
+  const entryByDay = new Map<string, JournalEntry>()
   for (const entry of [...entries].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt),
   )) {
-    moodByDay.set(dayKey(new Date(entry.createdAt)), entry)
+    entryByDay.set(dayKey(new Date(entry.createdAt)), entry)
   }
 
   const isCurrentMonth =
     month.getFullYear() === today.getFullYear() &&
     month.getMonth() === today.getMonth()
+
+  const monthPrefix = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`
 
   const monthLabel = month.toLocaleDateString(undefined, {
     month: 'long',
@@ -43,8 +54,17 @@ export function JournalCalendar({
     month.getMonth() + 1,
     0,
   ).getDate()
-  const leadingBlanks = month.getDay()
   const todayKey = dayKey(today)
+
+  const wateredInMonth = [...entryByDay.keys()]
+    .filter((key) => key.startsWith(monthPrefix))
+    .sort((a, b) => a.localeCompare(b))
+
+  const scrollAnchorKey = isCurrentMonth
+    ? todayKey
+    : selectedDay?.startsWith(monthPrefix)
+      ? selectedDay
+      : (wateredInMonth.at(-1) ?? `${monthPrefix}-01`)
 
   function shiftMonth(delta: number) {
     setMonth(
@@ -52,11 +72,7 @@ export function JournalCalendar({
     )
   }
 
-  const checkedInCount = [...moodByDay.keys()].filter((key) =>
-    key.startsWith(
-      `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`,
-    ),
-  ).length
+  const checkedInCount = wateredInMonth.length
 
   const selectedEntries = selectedDay
     ? [...entries]
@@ -64,21 +80,31 @@ export function JournalCalendar({
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     : []
 
+  // Keep today (or the latest watered day) in view when the strip loads.
+  useEffect(() => {
+    const target = anchorRef.current
+    const scroller = scrollerRef.current
+    if (!target || !scroller) return
+    const left =
+      target.offsetLeft - scroller.clientWidth / 2 + target.clientWidth / 2
+    scroller.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+  }, [month, scrollAnchorKey])
+
   return (
     <section
-      className="glass-card rounded-2xl p-5 animate-fade-up sm:p-6"
+      className="glass-card p-5 animate-fade-up sm:p-6"
       style={{ animationDelay: '60ms' }}
-      aria-label="Check-in calendar"
+      aria-label="Growth calendar"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-xl text-ink sm:text-2xl">
-            Your check-in calendar
+            Your growth calendar
           </h2>
           <p className="mt-1 text-sm text-ink-soft">
             {checkedInCount > 0
-              ? `You showed up ${checkedInCount} ${checkedInCount === 1 ? 'day' : 'days'} this month — love that for you.`
-              : 'Every day you check in gets a little mood mark here.'}
+              ? `You watered ${checkedInCount} ${checkedInCount === 1 ? 'day' : 'days'} this month — ${season.label} season is growing.`
+              : 'Every day you water gets a plant from your current season.'}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -127,40 +153,65 @@ export function JournalCalendar({
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-7 gap-1 text-center sm:gap-1.5">
-        {WEEKDAYS.map((day, index) => (
-          <span
-            key={`${day}-${index}`}
-            className="pb-1 text-xs font-medium text-ink-muted"
-            aria-hidden="true"
-          >
-            {day}
-          </span>
-        ))}
-
-        {Array.from({ length: leadingBlanks }, (_, index) => (
-          <span key={`blank-${index}`} />
-        ))}
-
+      <div
+        ref={scrollerRef}
+        className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]"
+        role="list"
+        aria-label={`${monthLabel} days`}
+      >
         {Array.from({ length: daysInMonth }, (_, index) => {
           const dayNumber = index + 1
-          const key = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`
-          const entry = moodByDay.get(key)
-          const style = entry ? MOOD_STYLES[entry.mood] : null
+          const date = new Date(
+            month.getFullYear(),
+            month.getMonth(),
+            dayNumber,
+          )
+          const key = dayKey(date)
+          const entry = entryByDay.get(key)
+          const daySeason = stageForDay(planted, key) ?? GARDEN_STAGES[0]
           const isToday = key === todayKey
           const isSelected = key === selectedDay
+          const weekday = date.toLocaleDateString(undefined, {
+            weekday: 'narrow',
+          })
+          const isFuture = isCurrentMonth && key > todayKey
+
+          const cellClass = `flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center transition ${
+            entry
+              ? `border border-sage-200 bg-sage-100 text-sage-600 ${
+                  isSelected
+                    ? 'ring-2 ring-sage-400 ring-offset-1'
+                    : isToday
+                      ? 'ring-1 ring-inset ring-sage-300'
+                      : ''
+                }`
+              : isToday
+                ? 'font-semibold text-sage-600 ring-1 ring-inset ring-sage-300'
+                : isFuture
+                  ? 'text-ink-muted/50'
+                  : 'text-ink-muted'
+          }`
 
           if (!entry) {
             return (
               <span
                 key={key}
-                className={`grid aspect-square place-items-center rounded-xl text-sm ${
-                  isToday
-                    ? 'font-semibold text-blush-600 ring-1 ring-inset ring-blush-300'
-                    : 'text-ink-muted'
-                }`}
+                ref={
+                  key === scrollAnchorKey
+                    ? (node) => {
+                        anchorRef.current = node
+                      }
+                    : undefined
+                }
+                role="listitem"
+                className={cellClass}
+                aria-current={isToday ? 'date' : undefined}
               >
-                {dayNumber}
+                <span className="text-[0.65rem] font-medium uppercase tracking-wide text-ink-muted">
+                  {weekday}
+                </span>
+                <span className="text-sm leading-none">{dayNumber}</span>
+                <span className="h-4" aria-hidden="true" />
               </span>
             )
           }
@@ -168,28 +219,32 @@ export function JournalCalendar({
           return (
             <button
               key={key}
+              ref={
+                key === scrollAnchorKey
+                  ? (node) => {
+                      anchorRef.current = node
+                    }
+                  : undefined
+              }
               type="button"
+              role="listitem"
               onClick={() => onSelectDay(isSelected ? null : key)}
               aria-pressed={isSelected}
-              aria-label={`Check-in on ${monthLabel} ${dayNumber}, feeling ${style?.label.toLowerCase()}`}
-              className={`grid aspect-square place-items-center rounded-xl border text-sm font-medium transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${style?.bg} ${style?.border} ${style?.text} ${
-                isSelected
-                  ? 'ring-2 ring-blush-400 ring-offset-1'
-                  : isToday
-                    ? 'ring-1 ring-inset ring-blush-300'
-                    : ''
-              }`}
+              aria-current={isToday ? 'date' : undefined}
+              aria-label={`Watered on ${monthLabel} ${dayNumber}, ${daySeason.label} season`}
+              className={`${cellClass} hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400`}
             >
-              <span className="leading-none">
-                <span className="block text-[0.7rem] leading-tight sm:text-xs">
-                  {dayNumber}
-                </span>
-                <span
-                  className="block text-xs leading-tight sm:text-sm"
-                  aria-hidden="true"
-                >
-                  {style?.emoji}
-                </span>
+              <span className="text-[0.65rem] font-medium uppercase tracking-wide text-sage-600/80">
+                {weekday}
+              </span>
+              <span className="text-sm font-medium leading-none">
+                {dayNumber}
+              </span>
+              <span className="flex h-5 items-center justify-center" aria-hidden="true">
+                <SeasonIcon
+                  id={daySeason.id}
+                  className="h-5 w-5"
+                />
               </span>
             </button>
           )
@@ -197,7 +252,7 @@ export function JournalCalendar({
       </div>
 
       {selectedDay ? (
-        <div className="mt-4 rounded-xl border border-blush-200 bg-blush-50/60 p-4 animate-fade-in">
+        <div className="mt-4 rounded-xl border border-sage-200 bg-sage-100/60 p-4 animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-medium text-ink">
               {new Date(`${selectedDay}T12:00:00`).toLocaleDateString(
@@ -208,7 +263,7 @@ export function JournalCalendar({
             <button
               type="button"
               onClick={() => onSelectDay(null)}
-              className="text-sm font-medium text-blush-600 underline-offset-2 transition hover:text-blush-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+              className="text-sm font-medium text-sage-600 underline-offset-2 transition hover:text-ink hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
             >
               Close preview
             </button>
@@ -221,20 +276,28 @@ export function JournalCalendar({
           ) : (
             <ul className="mt-3 space-y-3">
               {selectedEntries.map((entry) => {
-                const style = MOOD_STYLES[entry.mood]
+                const entrySeason =
+                  stageForDay(
+                    planted,
+                    dayKey(new Date(entry.createdAt)),
+                  ) ?? GARDEN_STAGES[0]
                 return (
                   <li key={entry.id}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text} ${style.border}`}
-                      >
-                        <span aria-hidden="true">{style.emoji}</span>
-                        {style.label}
+                      <span className="inline-flex items-center gap-1 rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
+                        <SeasonIcon
+                          id={entrySeason.id}
+                          className="h-4 w-4"
+                        />
+                        {entrySeason.label}
                       </span>
                       <span className="text-xs text-ink-muted">
                         {new Date(entry.createdAt).toLocaleTimeString(
                           undefined,
-                          { hour: 'numeric', minute: '2-digit' },
+                          {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          },
                         )}
                       </span>
                     </div>
@@ -253,7 +316,7 @@ export function JournalCalendar({
                     ) : null}
                     {!entry.gratitude && !entry.text ? (
                       <p className="mt-1.5 text-sm italic text-ink-muted">
-                        Just a mood check-in — no words this time.
+                        Just a quiet water — no words this time.
                       </p>
                     ) : null}
                   </li>
