@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Dashboard } from './components/Dashboard'
-import { GoalForm } from './components/GoalForm'
-import { GoalList } from './components/GoalList'
+import { Intentions } from './components/Intentions'
 import { Journal } from './components/Journal'
 import { Layout } from './components/Layout'
-import { MonthlyIntentionsCard } from './components/MonthlyIntentionsCard'
 import { Onboarding } from './components/Onboarding'
 import { VisionBoard } from './components/VisionBoard'
 import { GOAL_CATEGORIES } from './data/categories'
@@ -92,7 +90,10 @@ export default function App() {
   const captureOnboarding = captureView === 'onboarding'
   const captureStep = captureParams.get('step')
   const onboardingStep =
-    captureStep === 'name' || captureStep === 'focus' || captureStep === 'welcome'
+    captureStep === 'name' ||
+    captureStep === 'focus' ||
+    captureStep === 'welcome' ||
+    captureStep === 'garden'
       ? captureStep
       : 'welcome'
 
@@ -109,9 +110,21 @@ export default function App() {
     return 'dashboard'
   })
   const scrollTarget = useRef<string | null>(null)
+  const [intentionsTab, setIntentionsTab] = useState<'daily' | 'monthly' | null>(
+    null,
+  )
 
   function navigateTo(nextView: View, targetId?: string) {
     scrollTarget.current = targetId ?? null
+    if (nextView === 'goals') {
+      if (targetId === 'monthly') {
+        setIntentionsTab('monthly')
+      } else if (targetId === 'add-goal' || targetId === 'daily') {
+        setIntentionsTab('daily')
+      } else {
+        setIntentionsTab(null)
+      }
+    }
     setView(nextView)
   }
 
@@ -120,12 +133,17 @@ export default function App() {
   useEffect(() => {
     const target = scrollTarget.current
     scrollTarget.current = null
-    if (target) {
+    if (target === 'add-goal' || target === 'add-vision') {
+      // Wait a tick so the destination form is mounted.
+      requestAnimationFrame(() => {
+        document.getElementById(target)?.scrollIntoView({ block: 'start' })
+      })
+    } else if (target && target !== 'daily' && target !== 'monthly') {
       document.getElementById(target)?.scrollIntoView({ block: 'start' })
     } else {
       window.scrollTo(0, 0)
     }
-  }, [view])
+  }, [view, intentionsTab])
   const [goals, setGoals, goalsPersistFailed] = useLocalStorage<Goal[]>(
     GOALS_KEY,
     [],
@@ -286,29 +304,13 @@ export default function App() {
       )}
 
       {view === 'goals' && (
-        <div className="space-y-8 sm:space-y-10">
-          <header className="animate-fade-up">
-            <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              Intentions
-            </h1>
-            <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              Set your month's focus, then tend the little promises that grow
-              it — big or small, they all count.
-            </p>
-          </header>
-          <MonthlyIntentionsCard />
-          <GoalForm onAdd={addGoal} />
-          <section className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-            <h2 className="mb-4 font-display text-2xl text-ink">
-              Everything you're growing
-            </h2>
-            <GoalList
-              goals={goals}
-              onToggle={toggleGoal}
-              onDelete={deleteGoal}
-            />
-          </section>
-        </div>
+        <Intentions
+          goals={goals}
+          onAddGoal={addGoal}
+          onToggleGoal={toggleGoal}
+          onDeleteGoal={deleteGoal}
+          initialTab={intentionsTab}
+        />
       )}
 
       {view === 'vision' && (
@@ -318,8 +320,9 @@ export default function App() {
               Vision Board
             </h1>
             <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              Fill it with images of the life you're building — no dream too
-              big.
+              Collect images and words that feel like the life you&apos;re
+              growing into. Start with one piece — upload a photo, paste an
+              image link, or make a quote card.
             </p>
           </header>
           <VisionBoard
@@ -338,9 +341,8 @@ export default function App() {
               Garden
             </h1>
             <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              Every day you show up is one drop of water. Plant a gratitude,
-              watch your seasons grow, and leave the rest of your mind here
-              too.
+              Add a gratitude moment to water your plant. Every day you show up
+              becomes one drop of care, helping your season slowly grow.
             </p>
           </header>
           <Journal

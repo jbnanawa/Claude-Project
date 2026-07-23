@@ -44,13 +44,36 @@
     min-height: 100vh;
     font-family: var(--font-sans);
     color: var(--color-ink);
-    background:
-      radial-gradient(ellipse 80% 50% at 10% 0%, #fceee9 0%, transparent 55%),
-      radial-gradient(ellipse 70% 45% at 90% 10%, #f5f8f5 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 50% 100%, #fff3ec 0%, transparent 55%),
-      linear-gradient(160deg, #fffcfb 0%, #fff9f7 40%, #faf8f6 100%);
+    /* Soft shader wash (Figma node 76:55) — cream base + pastel aurora blobs + grain */
+    background-color: #fff8f5;
+    background-image:
+      radial-gradient(ellipse 70% 55% at 12% -5%, rgba(255, 107, 107, 0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 45% at 88% 8%, rgba(255, 209, 102, 0.2) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 72% 28%, rgba(128, 179, 89, 0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 48% 42%, rgba(74, 166, 140, 0.16) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 18% 58%, rgba(179, 77, 153, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 65% 55% at 8% 92%, rgba(5, 214, 161, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 92% 88%, rgba(18, 138, 179, 0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 40% at 55% 95%, rgba(26, 153, 179, 0.14) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 35% at 5% 22%, rgba(204, 140, 128, 0.16) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 45% at 78% 5%, rgba(255, 163, 107, 0.18) 0%, transparent 50%),
+      linear-gradient(160deg, #fff8f5 8.49%, #fdf0eb 41.7%, #f7f3ef 91.51%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grain overlay — mirrors Figma’s secondary shader (~5% opacity) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+    mix-blend-mode: soft-light;
   }
 
   button,
@@ -90,9 +113,9 @@
     border-radius: 24px;
     background: linear-gradient(
       135deg,
-      rgba(255, 253, 251, 0.124) 0%,
-      rgba(255, 248, 245, 0.076) 50%,
-      rgba(255, 253, 251, 0.11) 100%
+      rgba(255, 253, 251, 0.496) 0%,
+      rgba(255, 248, 245, 0.304) 50%,
+      rgba(255, 253, 251, 0.44) 100%
     );
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     backdrop-filter: blur(20px) saturate(1.6);

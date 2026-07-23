@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import {
   INTENTIONS_KEY,
+  MAX_PRIORITIES,
   WEEKS_PER_PRIORITY,
   currentMonthKey,
   emptyIntentions,
@@ -10,6 +11,20 @@ import {
   withDone,
 } from '../lib/intentions'
 import type { MonthlyIntentions } from '../types'
+
+const PRIORITY_PROMPTS = [
+  'Priority 1',
+  'Priority 2',
+  'Priority 3',
+] as const
+
+function hasIntentionsContent(intentions: MonthlyIntentions): boolean {
+  return (
+    intentions.focus.trim().length > 0 ||
+    intentions.notes.trim().length > 0 ||
+    intentions.priorities.some((item) => item.trim().length > 0)
+  )
+}
 
 export function MonthlyIntentionsCard() {
   const [stored, setStored] = useLocalStorage<MonthlyIntentions>(
@@ -24,14 +39,18 @@ export function MonthlyIntentionsCard() {
     stored.month === monthKey ? stored : emptyIntentions(),
   )
 
-  // Edits live in a draft until the user hits save.
   const [draft, setDraft] = useState<MonthlyIntentions>(saved)
-  const [justSaved, setJustSaved] = useState(false)
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [status, setStatus] = useState<'idle' | 'added' | 'updated'>('idle')
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const readyToAutosave = useRef(false)
 
   useEffect(() => {
+    // Skip the first paint so mounting doesn't flash a save status.
+    readyToAutosave.current = true
     return () => {
-      if (savedTimer.current) clearTimeout(savedTimer.current)
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      if (statusTimer.current) clearTimeout(statusTimer.current)
     }
   }, [])
 
@@ -55,20 +74,45 @@ export function MonthlyIntentionsCard() {
       draft.priorities[index]?.trim() && weeks >= WEEKS_PER_PRIORITY,
   ).length
 
+  useEffect(() => {
+    if (!readyToAutosave.current || !isDirty) return
+
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      const next = withDone({ ...draft, month: monthKey })
+      const wasEmpty = !hasIntentionsContent(saved)
+      const hasContent = hasIntentionsContent(next)
+      setStored(next)
+
+      if (!hasContent) {
+        setStatus('idle')
+        return
+      }
+
+      setStatus(wasEmpty ? 'added' : 'updated')
+      if (statusTimer.current) clearTimeout(statusTimer.current)
+      statusTimer.current = setTimeout(() => setStatus('idle'), 2500)
+    }, 400)
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+    }
+  }, [draft, isDirty, monthKey, saved, setStored])
+
   function update(patch: Partial<MonthlyIntentions>) {
     setDraft((prev) => ({ ...prev, month: monthKey, ...patch }))
-    setJustSaved(false)
   }
 
   function updatePriority(index: number, text: string) {
     const priorities = [...draft.priorities]
+    while (priorities.length < MAX_PRIORITIES) priorities.push('')
     priorities[index] = text
-    update({ priorities })
+    update({ priorities: priorities.slice(0, MAX_PRIORITIES) })
   }
 
   function setWeeks(index: number, weeks: number) {
     setDraft((prev) => {
-      const nextWeeks = prev.priorities.map((_, i) => {
+      const nextWeeks = Array.from({ length: MAX_PRIORITIES }, (_, i) => {
         const current = prev.priorityWeeks?.[i] ?? 0
         if (i !== index) return current
         return Math.max(0, Math.min(WEEKS_PER_PRIORITY, weeks))
@@ -80,58 +124,10 @@ export function MonthlyIntentionsCard() {
         prioritiesDone: nextWeeks.map((count) => count >= WEEKS_PER_PRIORITY),
       }
     })
-    setJustSaved(false)
-  }
-
-  function addWeek(index: number) {
-    const current = draftWeeks[index] ?? 0
-    if (current >= WEEKS_PER_PRIORITY) return
-    setWeeks(index, current + 1)
-  }
-
-  function addPriority() {
-    setDraft((prev) => ({
-      ...prev,
-      month: monthKey,
-      priorities: [...prev.priorities, ''],
-      prioritiesDone: [
-        ...prev.priorities.map((_, i) => prev.prioritiesDone?.[i] === true),
-        false,
-      ],
-      priorityWeeks: [
-        ...prev.priorities.map((_, i) => prev.priorityWeeks?.[i] ?? 0),
-        0,
-      ],
-    }))
-    setJustSaved(false)
-  }
-
-  function removePriority(index: number) {
-    setDraft((prev) => {
-      const nextPriorities = prev.priorities.filter((_, i) => i !== index)
-      const nextWeeks = prev.priorities
-        .map((_, i) => prev.priorityWeeks?.[i] ?? 0)
-        .filter((_, i) => i !== index)
-      return {
-        ...prev,
-        month: monthKey,
-        priorities: nextPriorities,
-        priorityWeeks: nextWeeks,
-        prioritiesDone: nextWeeks.map((count) => count >= WEEKS_PER_PRIORITY),
-      }
-    })
-    setJustSaved(false)
-  }
-
-  function handleSave() {
-    setStored(withDone({ ...draft, month: monthKey }))
-    setJustSaved(true)
-    if (savedTimer.current) clearTimeout(savedTimer.current)
-    savedTimer.current = setTimeout(() => setJustSaved(false), 2500)
   }
 
   const inputClasses =
-    'w-full rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200'
+    'w-full rounded-xl border border-sage-200 bg-white/80 px-3.5 py-3 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200'
 
   return (
     <section
@@ -146,191 +142,151 @@ export function MonthlyIntentionsCard() {
         <p className="text-sm text-ink-muted">{monthLabel}</p>
       </div>
       <p className="mt-1 text-sm text-ink-soft">
-        One focus, a few priorities — checked off week by week.
+        A short ritual for the month ahead — one focus, a few priorities.
       </p>
 
-      <div className="mt-5 space-y-5">
-        <label className="block rounded-2xl border border-blush-200 bg-blush-50/80 p-4">
-          <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-sage-600">
-            This month's focus
+      <div className="mt-6 space-y-7">
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-ink">
+            This month, I want to focus on:
           </span>
           <input
             type="text"
             value={draft.focus}
             onChange={(e) => update({ focus: e.target.value })}
-            placeholder="e.g. Slowing down and choosing what feels good"
-            className="mt-2 w-full border-0 bg-transparent p-0 font-display text-lg text-ink outline-none placeholder:text-ink-muted focus:ring-0 sm:text-xl"
+            placeholder="One intention that guides everything else"
+            className={`${inputClasses} font-display text-lg sm:text-xl`}
           />
         </label>
 
         <fieldset>
-          <legend className="sr-only">Your top priorities this month</legend>
-          <div className="divide-y divide-blush-200/80">
-            {draft.priorities.map((priority, index) => {
+          <legend className="mb-1 text-sm font-medium text-ink">
+            My top priorities:
+          </legend>
+          <p className="mb-3 text-xs text-ink-muted">
+            Tap a bar segment to set progress — from Not started to Complete.
+          </p>
+          <div className="space-y-3">
+            {Array.from({ length: MAX_PRIORITIES }, (_, index) => {
+              const priority = draft.priorities[index] ?? ''
               const weeks = draftWeeks[index] ?? 0
               const hasText = priority.trim().length > 0
               const status = weekLabel(weeks)
               const complete = weeks >= WEEKS_PER_PRIORITY
 
               return (
-                <div key={index} className="py-4 first:pt-0 last:pb-0">
-                  <div className="flex items-start gap-3">
+                <div
+                  key={index}
+                  className="rounded-2xl border border-blush-200/80 bg-blush-50/50 p-3.5 sm:p-4"
+                >
+                  <div className="flex items-center gap-3">
                     <span
-                      className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blush-100 text-xs font-semibold text-blush-600"
+                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blush-100 text-xs font-semibold text-blush-600"
                       aria-hidden="true"
                     >
                       {index + 1}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={priority}
-                          onChange={(e) =>
-                            updatePriority(index, e.target.value)
-                          }
-                          placeholder={
-                            index === 0
-                              ? 'The one thing that matters most'
-                              : `Priority ${index + 1}`
-                          }
-                          aria-label={`Priority ${index + 1}`}
-                          className={`min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-ink-muted focus:ring-0 sm:text-base ${
-                            complete ? 'line-through opacity-60' : ''
-                          }`}
-                        />
-                        <span
-                          className={`shrink-0 text-xs font-medium ${
-                            complete
-                              ? 'text-sage-600'
-                              : weeks > 0
-                                ? 'text-ink-soft'
-                                : 'text-ink-muted'
-                          }`}
-                          title={
-                            complete
-                              ? 'Completed'
-                              : weeks > 0
-                                ? `${weeks} of ${WEEKS_PER_PRIORITY} weeks`
-                                : 'Not started'
-                          }
-                        >
-                          {status}
-                        </span>
-                        {draft.priorities.length > 1 ? (
-                          <button
-                            type="button"
-                            onClick={() => removePriority(index)}
-                            aria-label={`Remove priority ${index + 1}`}
-                            title="Remove this priority"
-                            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-ink-muted transition hover:bg-blush-100 hover:text-blush-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-                          >
-                            <svg
-                              className="h-3.5 w-3.5"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M4 4l8 8M12 4l-8 8" />
-                            </svg>
-                          </button>
-                        ) : null}
-                      </div>
+                    <input
+                      type="text"
+                      value={priority}
+                      onChange={(e) => updatePriority(index, e.target.value)}
+                      placeholder={PRIORITY_PROMPTS[index]}
+                      aria-label={`Priority ${index + 1}`}
+                      className={`min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-ink-muted focus:ring-0 sm:text-base ${
+                        complete ? 'line-through opacity-60' : ''
+                      }`}
+                    />
+                    <span
+                      className={`shrink-0 text-xs font-medium ${
+                        complete
+                          ? 'text-sage-600'
+                          : weeks > 0
+                            ? 'text-ink-soft'
+                            : 'text-ink-muted'
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  </div>
 
-                      <div className="mt-3 flex items-center gap-3">
-                        <div
-                          className="flex w-1/2 max-w-xs items-center gap-1.5"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={WEEKS_PER_PRIORITY}
-                          aria-valuenow={weeks}
-                          aria-label={`Priority ${index + 1} weekly progress`}
-                        >
-                          {Array.from(
-                            { length: WEEKS_PER_PRIORITY },
-                            (_, weekIndex) => {
-                              const filled = weekIndex < weeks
-                              return (
-                                <button
-                                  key={weekIndex}
-                                  type="button"
-                                  disabled={!hasText}
-                                  onClick={() =>
-                                    setWeeks(
-                                      index,
-                                      filled ? weekIndex : weekIndex + 1,
-                                    )
-                                  }
-                                  title={
-                                    !hasText
-                                      ? 'Write this priority first'
-                                      : filled
-                                        ? `Week ${weekIndex + 1} done — click to set progress here`
-                                        : `Mark through week ${weekIndex + 1}`
-                                  }
-                                  aria-label={`Set priority ${index + 1} to ${weekIndex + 1} weeks`}
-                                  className={`h-2.5 flex-1 rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50 ${
-                                    filled
-                                      ? 'bg-sage-600 hover:bg-sage-400'
-                                      : 'bg-sage-200/70 hover:bg-sage-200'
-                                  }`}
-                                />
-                              )
-                            },
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => addWeek(index)}
-                          disabled={!hasText || complete}
-                          className="shrink-0 rounded-full bg-sage-100 px-3 py-1 text-xs font-semibold text-sage-600 transition hover:bg-sage-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          + week
-                        </button>
-                      </div>
+                  <div className="mt-3 pl-10">
+                    <div
+                      className="flex max-w-xs items-center gap-1.5"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(
+                        (weeks / WEEKS_PER_PRIORITY) * 100,
+                      )}
+                      aria-label={`Priority ${index + 1} progress`}
+                    >
+                      {Array.from(
+                        { length: WEEKS_PER_PRIORITY },
+                        (_, stepIndex) => {
+                          const filled = stepIndex < weeks
+                          return (
+                            <button
+                              key={stepIndex}
+                              type="button"
+                              disabled={!hasText}
+                              onClick={() =>
+                                setWeeks(
+                                  index,
+                                  filled ? stepIndex : stepIndex + 1,
+                                )
+                              }
+                              title={
+                                !hasText
+                                  ? 'Write this priority first'
+                                  : filled
+                                    ? `${weekLabel(stepIndex + 1)} — tap to lower here`
+                                    : weekLabel(stepIndex + 1)
+                              }
+                              aria-label={`Set priority ${index + 1} to ${weekLabel(stepIndex + 1)}`}
+                              className={`h-3.5 flex-1 rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                filled
+                                  ? 'bg-sage-600 hover:bg-sage-400'
+                                  : 'bg-sage-200/70 hover:bg-sage-200'
+                              }`}
+                            />
+                          )
+                        },
+                      )}
                     </div>
                   </div>
                 </div>
               )
             })}
           </div>
-
-          <button
-            type="button"
-            onClick={addPriority}
-            className="mt-1 inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm font-medium text-blush-600 transition hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-          >
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M8 3v10M3 8h10" />
-            </svg>
-            Add another priority
-          </button>
         </fieldset>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-ink">
+            Why does this matter to me?{' '}
+            <span className="font-normal text-ink-muted">(optional)</span>
+          </span>
+          <textarea
+            value={draft.notes}
+            onChange={(e) => update({ notes: e.target.value })}
+            rows={3}
+            placeholder="A few words to come back to when the month gets noisy..."
+            className={`${inputClasses} resize-y`}
+          />
+        </label>
 
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-sage-100 px-4 py-3">
           <p className="text-sm font-medium text-sage-600">
-            This month's progress
+            This month&apos;s progress
           </p>
           <div className="flex items-center gap-2.5">
             <span className="text-sm tabular-nums text-sage-600">
-              {completedCount} of {filledPriorities || draft.priorities.length}
+              {completedCount} of {filledPriorities || MAX_PRIORITIES}
             </span>
             <div
               className="h-1.5 w-16 overflow-hidden rounded-full bg-sage-200/80 sm:w-20"
               role="progressbar"
               aria-valuemin={0}
-              aria-valuemax={filledPriorities || draft.priorities.length}
+              aria-valuemax={filledPriorities || MAX_PRIORITIES}
               aria-valuenow={completedCount}
               aria-label="Completed priorities this month"
             >
@@ -347,52 +303,43 @@ export function MonthlyIntentionsCard() {
             </div>
           </div>
         </div>
+      </div>
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-            Anything else on your mind?
+      <p aria-live="polite" className="mt-5 min-h-5 text-sm">
+        {status === 'added' ? (
+          <span className="inline-flex items-center gap-1.5 font-medium text-sage-600">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m3 8.5 3.5 3.5L13 5" />
+            </svg>
+            Intentions added
           </span>
-          <textarea
-            value={draft.notes}
-            onChange={(e) => update({ notes: e.target.value })}
-            rows={3}
-            placeholder="Little reminders, hopes, whatever you want to remember..."
-            className={`${inputClasses} resize-y`}
-          />
-        </label>
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!isDirty}
-          className="w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          Save my intentions
-        </button>
-        <p aria-live="polite" className="text-sm">
-          {justSaved ? (
-            <span className="inline-flex items-center gap-1.5 font-medium text-sage-600">
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m3 8.5 3.5 3.5L13 5" />
-              </svg>
-              Saved — all set for {monthLabel.split(' ')[0]}.
-            </span>
-          ) : isDirty ? (
-            <span className="text-ink-muted">You have unsaved changes.</span>
-          ) : null}
-        </p>
-      </div>
+        ) : status === 'updated' ? (
+          <span className="inline-flex items-center gap-1.5 font-medium text-sage-600">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m3 8.5 3.5 3.5L13 5" />
+            </svg>
+            Intentions updated
+          </span>
+        ) : null}
+      </p>
     </section>
   )
 }

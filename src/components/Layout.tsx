@@ -106,9 +106,9 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
           <button
             type="button"
             onClick={() => onNavigate('dashboard')}
-            className="group flex items-center gap-2.5 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+            className="group flex items-center gap-2.5 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E6419]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-blush-200 text-sm font-semibold text-blush-700 transition group-hover:bg-blush-300">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#9E6419]/15 text-sm font-semibold text-[#9E6419] transition group-hover:bg-[#9E6419]/25">
               Gw
             </span>
             <span className="font-display text-lg tracking-tight text-ink sm:text-xl">
@@ -129,10 +129,10 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
                   type="button"
                   onClick={() => onNavigate(item.id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`shrink-0 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+                  className={`shrink-0 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
                     active
-                      ? 'bg-blush-500 text-white shadow-[0_4px_14px_rgba(196,123,123,0.35)]'
-                      : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
+                      ? 'bg-sage-400 text-white shadow-[0_4px_14px_rgba(143,166,142,0.35)]'
+                      : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
                   }`}
                 >
                   {item.label}
@@ -167,15 +167,15 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
                   type="button"
                   onClick={() => onNavigate(item.id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+                  className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
                     active
-                      ? 'text-blush-600'
+                      ? 'text-sage-600'
                       : 'text-ink-muted hover:text-ink-soft'
                   }`}
                 >
                   <span
                     className={`grid h-8 w-8 place-items-center rounded-xl transition ${
-                      active ? 'bg-blush-100' : ''
+                      active ? 'bg-sage-100' : ''
                     }`}
                   >
                     {item.icon}

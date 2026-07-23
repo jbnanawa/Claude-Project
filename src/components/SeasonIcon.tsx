@@ -1,12 +1,4 @@
 import type { SeasonId } from '../lib/garden'
-import bloom from '../assets/seasons/bloom.png'
-import forest from '../assets/seasons/forest.png'
-import garden from '../assets/seasons/garden.png'
-import glowWithin from '../assets/seasons/glow-within.png'
-import sanctuary from '../assets/seasons/sanctuary.png'
-import seed from '../assets/seasons/seed.png'
-import sprout from '../assets/seasons/sprout.png'
-import water from '../assets/seasons/water.png'
 
 export type GardenMarkId = SeasonId | 'water'
 
@@ -16,31 +8,32 @@ interface SeasonIconProps {
   title?: string
 }
 
-const SRC: Record<GardenMarkId, string> = {
-  seed,
-  sprout,
-  bloom,
-  garden,
-  forest,
-  sanctuary,
-  'glow-within': glowWithin,
-  water,
+const EMOJI: Record<GardenMarkId, string> = {
+  seed: '🌱',
+  sprout: '🌿',
+  bloom: '🌸',
+  garden: '🌷',
+  forest: '🌳',
+  sanctuary: '✨',
+  'glow-within': '🌌',
+  water: '💧',
 }
 
-/** Line-art garden mark — Seed → Glow Within (+ Water). Transparent PNGs. */
+/** Garden mark — Seed → Glow Within (+ Water). */
 export function SeasonIcon({
   id,
-  className = 'h-5 w-5',
+  className = 'text-base',
   title,
 }: SeasonIconProps) {
   return (
-    <img
-      src={SRC[id]}
-      alt=""
-      title={title}
+    <span
+      role={title ? 'img' : undefined}
+      aria-label={title}
       aria-hidden={title ? undefined : true}
-      className={`shrink-0 object-contain ${className}`}
-      draggable={false}
-    />
+      title={title}
+      className={`inline-flex shrink-0 items-center justify-center leading-none ${className}`}
+    >
+      {EMOJI[id]}
+    </span>
   )
 }

@@ -243,7 +243,7 @@ export function JournalCalendar({
               <span className="flex h-5 items-center justify-center" aria-hidden="true">
                 <SeasonIcon
                   id={daySeason.id}
-                  className="h-5 w-5"
+                  className="text-base"
                 />
               </span>
             </button>
@@ -287,7 +287,7 @@ export function JournalCalendar({
                       <span className="inline-flex items-center gap-1 rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
                         <SeasonIcon
                           id={entrySeason.id}
-                          className="h-4 w-4"
+                          className="text-sm"
                         />
                         {entrySeason.label}
                       </span>

@@ -54,7 +54,7 @@ export function GoalForm({ onAdd }: GoalFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Morning walks three times a week"
-            className="w-full rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
+            className="w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
             required
           />
         </label>
@@ -63,17 +63,33 @@ export function GoalForm({ onAdd }: GoalFormProps) {
           <span className="mb-1.5 block text-sm font-medium text-ink-soft">
             Category
           </span>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as GoalCategory)}
-            className="w-full rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
-          >
-            {GOAL_CATEGORIES.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          <span className="relative block">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as GoalCategory)}
+              className="w-full appearance-none rounded-xl border border-sage-200 bg-blush-50 py-2.5 pr-10 pl-3.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+            >
+              {GOAL_CATEGORIES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+            <svg
+              className="pointer-events-none absolute top-1/2 right-3.5 h-4 w-4 -translate-y-1/2 text-ink-soft"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="m6 8 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </label>
 
         <label className="block sm:col-span-2">
@@ -86,14 +102,14 @@ export function GoalForm({ onAdd }: GoalFormProps) {
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="A little note to remind you why this matters..."
-            className="w-full resize-y rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200"
+            className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
           />
         </label>
       </div>
 
       <button
         type="submit"
-        className="mt-6 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto"
+        className="mt-6 w-full rounded-xl bg-sage-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
       >
         Add it to the list
       </button>

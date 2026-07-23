@@ -43,12 +43,10 @@ function formatEntryDate(iso: string): string {
 
 export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
   const [gratitude, setGratitude] = useState('')
-  const [text, setText] = useState('')
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editGratitude, setEditGratitude] = useState('')
-  const [editText, setEditText] = useState('')
 
   const planted = plantedDays(entries)
   const season = currentStage(entries) ?? GARDEN_STAGES[0]
@@ -69,7 +67,6 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
     setOpenMenuId(null)
     setEditingId(entry.id)
     setEditGratitude(entry.gratitude)
-    setEditText(entry.text)
   }
 
   function saveEditing(entry: JournalEntry) {
@@ -77,7 +74,6 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
     onUpdate({
       ...entry,
       gratitude: editGratitude.trim(),
-      text: editText.trim(),
     })
     setEditingId(null)
   }
@@ -91,14 +87,8 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
   const checkedInToday =
     sorted.length > 0 && isSameDay(new Date(sorted[0].createdAt), new Date())
 
-  const todayLabel = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  })
-
   const inputClasses =
-    'w-full rounded-xl border border-blush-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-blush-400 focus:ring-2 focus:ring-blush-200'
+    'w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200'
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -108,12 +98,11 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
       id: createId(),
       mood: 'content',
       gratitude: gratitude.trim(),
-      text: text.trim(),
+      text: '',
       createdAt: new Date().toISOString(),
     })
 
     setGratitude('')
-    setText('')
   }
 
   if (checkedInToday) {
@@ -121,29 +110,25 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
       <div className="space-y-8 sm:space-y-10">
         <section
           className="glass-card p-5 animate-fade-up sm:p-6"
-          aria-label="Today's check-in"
+          aria-label="Watered with gratitude"
+          aria-live="polite"
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-display text-xl text-ink sm:text-2xl">
-              Today's water
-            </h2>
-            <p className="text-sm text-ink-muted">{todayLabel}</p>
-          </div>
-          <div className="mt-5 flex items-center gap-4">
+          <div className="flex min-w-0 items-start gap-3">
             <span
-              className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-sage-100"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-sage-100"
               aria-hidden="true"
             >
-              <SeasonIcon id="water" className="h-10 w-10" />
+              <SeasonIcon id="water" className="text-2xl" />
             </span>
             <div>
-              <p className="font-display text-lg text-ink">
-                Watered for today — {season.label} season
-              </p>
-              <p className="mt-1 inline-flex items-center gap-1.5 text-sm leading-relaxed text-ink-soft">
-                <SeasonIcon id={season.id} className="h-4 w-4" />
-                Your gratitude is growing. Come back tomorrow to keep watering.
-                To tweak today's entry, use the little menu below.
+              <h2 className="font-display text-xl text-ink sm:text-2xl">
+                Watered with gratitude
+              </h2>
+              <p className="mt-1.5 text-base leading-relaxed text-ink-soft">
+                Your plant has been watered for today. Come back tomorrow for
+                your next drop. You&apos;re in your {season.label} Season, and
+                every small moment counts. To update today&apos;s entry, use the
+                menu below.
               </p>
             </div>
           </div>
@@ -166,60 +151,28 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
         onSubmit={handleSubmit}
         className="glass-card p-5 animate-fade-up sm:p-6"
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl text-ink sm:text-2xl">
-            Today's water
-          </h2>
-          <p className="text-sm text-ink-muted">{todayLabel}</p>
-        </div>
-        <p className="mt-1 text-sm text-ink-soft">
-          Every day you show up is one drop of water. Plant one little gratitude
-          to grow today.
-        </p>
-
-        <div className="mt-6 space-y-5">
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              One little gratitude to plant
-            </span>
-            <input
-              type="text"
-              value={gratitude}
-              onChange={(e) => setGratitude(e.target.value)}
-              placeholder="e.g. Morning light through the window"
-              required
-              className={inputClasses}
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-              Anything else on your mind?{' '}
-              <span className="font-normal text-ink-muted">(optional)</span>
-            </span>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={4}
-              placeholder="No filter needed — just let it out..."
-              className={`${inputClasses} resize-y`}
-            />
-          </label>
-        </div>
+        <label className="block">
+          <span className="mb-3 block font-display text-xl text-ink sm:text-2xl">
+            Today I&apos;m grateful for…
+          </span>
+          <input
+            type="text"
+            value={gratitude}
+            onChange={(e) => setGratitude(e.target.value)}
+            placeholder="e.g. Morning light through the window"
+            required
+            autoFocus
+            className={`${inputClasses} py-3.5 text-base`}
+          />
+        </label>
 
         <button
           type="submit"
           disabled={!gratitude.trim()}
-          className="mt-6 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="mt-8 inline-flex w-full min-h-14 items-center justify-center rounded-2xl bg-sage-400 px-6 py-4 text-base font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Plant this gratitude
-          <SeasonIcon id="seed" className="h-5 w-5 brightness-0 invert" />
+          Water with gratitude
         </button>
-        {!gratitude.trim() ? (
-          <p className="mt-2 text-xs text-ink-muted">
-            Add one little gratitude to water your garden today.
-          </p>
-        ) : null}
       </form>
 
       <JournalCalendar
@@ -246,14 +199,14 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
         </h2>
 
         {sorted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+          <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
             <p className="font-display text-xl text-ink">Nothing planted yet</p>
             <p className="mt-2 text-sm text-ink-soft">
               Once you water a day, your moments will grow here.
             </p>
           </div>
         ) : visibleEntries.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+          <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
             <p className="font-display text-xl text-ink">
               Nothing left on this day
             </p>
@@ -297,16 +250,9 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                       type="text"
                       value={editGratitude}
                       onChange={(e) => setEditGratitude(e.target.value)}
-                      placeholder="One little gratitude to plant..."
+                      placeholder="Today I'm grateful for…"
                       required
                       className={`${inputClasses} mt-3`}
-                    />
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      rows={3}
-                      placeholder="No filter needed — just let it out..."
-                      className={`${inputClasses} mt-2 resize-y`}
                     />
 
                     <div className="mt-3 flex items-center justify-end gap-2">
@@ -356,7 +302,7 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                         >
                           <SeasonIcon
                             id={entrySeason.id}
-                            className="h-4 w-4"
+                            className="text-sm"
                           />
                           {entrySeason.label}
                         </span>

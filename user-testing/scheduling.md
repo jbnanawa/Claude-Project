@@ -4,7 +4,7 @@ Import this into Notion (Import → Markdown) or paste sections into a Google Fo
 
 Replace the placeholders before sharing:
 - `LIVE_APP_URL` — Vercel URL after deploy (say “retry deploy” once logged in)
-- `FIGMA_PROTOTYPE_URL` — Desktop: https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=15-2&starting-point-node-id=15-2&scaling=scale-down-width · Mobile: https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=32-2&starting-point-node-id=32-2&scaling=scale-down-width
+- `FIGMA_PROTOTYPE_URL` — Desktop: https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=190-4&starting-point-node-id=190-4&scaling=scale-down-width · Mobile: https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=206-2&starting-point-node-id=206-2&scaling=scale-down-width
 - `SIGNUP_URL` — open `user-testing/signup.html` (or `/user-testing-signup.html` on the deployed host)
 - `CALENDAR_LINK` — Calendly / Google Appointment schedule (optional)
 - `YOUR_EMAIL` — where confirmations go

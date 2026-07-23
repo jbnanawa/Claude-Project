@@ -28,7 +28,7 @@ export function AffirmationCard({ compact = false }: AffirmationCardProps) {
         aria-hidden
       />
 
-      <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-blush-600">
+      <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-[#9E6419]">
         A little reminder for you
       </p>
       <p className="relative mt-1 text-sm text-ink-muted">{today}</p>

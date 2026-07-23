@@ -37,17 +37,16 @@ Pick one:
 
 | What | Link |
 |---|---|
-| **Live app** | Finish Vercel login (browser tab / device code), then you’ll get a stable `*.vercel.app` URL. Until then: `npm run preview` locally and share screen, or ask me to retry deploy after you sign in. |
-| **Signup form** | Open locally: [signup.html](./signup.html) · also served at `/user-testing-signup.html` once deployed |
-| **Figma prototype — desktop** | [Play from onboarding](https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=15-2&starting-point-node-id=15-2&scaling=scale-down-width) |
-| **Figma prototype — mobile** | [Play from onboarding](https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=32-2&starting-point-node-id=32-2&scaling=scale-down-width) |
-| **Scheduling kit** | [scheduling.md](./scheduling.md) (Notion import) · [notion-signups.csv](./notion-signups.csv) · [signup.html](./signup.html) |
+| **Live app** | Not deployed yet — say **“retry deploy”** after `npx vercel login`, or screen-share with `npm run preview`. |
+| **Signup form** | Open locally: [signup.html](./signup.html) |
+| **Figma prototype — desktop** | [Play from onboarding](https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=190-4&starting-point-node-id=190-4&scaling=scale-down-width) |
+| **Figma prototype — mobile** | [Play from onboarding](https://www.figma.com/proto/JKBlhw72H9rIvkcKSiKR14?node-id=206-2&starting-point-node-id=206-2&scaling=scale-down-width) |
+| **Scheduling kit** | [scheduling.md](./scheduling.md) · [notion-signups.csv](./notion-signups.csv) · [signup.html](./signup.html) |
 
 ### Deploy (permanent link)
 
-1. Open the Vercel device login tab (or run `npx vercel login`).
-2. Approve the CLI.
-3. Say “retry deploy” and I’ll publish to production and paste the URL here.
+1. In Terminal: `npx vercel login` and approve in the browser.
+2. Tell me **“retry deploy”** — I’ll publish and paste the `*.vercel.app` URL here.
 
 ## Run checklist
 

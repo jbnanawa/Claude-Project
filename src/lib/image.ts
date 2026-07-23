@@ -42,3 +42,31 @@ export function compressImage(source: string): Promise<string> {
     image.src = source
   })
 }
+
+/** True when the URL path looks like a direct image file. */
+export function looksLikeDirectImageUrl(value: string): boolean {
+  try {
+    const url = new URL(value.trim())
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
+    if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|#|$)/i.test(url.pathname)) return true
+    // Common image CDNs serve without a file extension in the path.
+    return /(images|imgur|unsplash|pinimg|cloudinary|imgix|twimg|googleusercontent)/i.test(
+      url.hostname,
+    )
+  } catch {
+    return false
+  }
+}
+
+/** Proxy that bypasses many hotlink blocks for remote image URLs. */
+export function proxiedImageUrl(value: string): string {
+  const trimmed = value.trim()
+  return `https://wsrv.nl/?url=${encodeURIComponent(trimmed)}&n=-1`
+}
+
+export function linkImageHint(value: string): string {
+  if (!looksLikeDirectImageUrl(value)) {
+    return 'That looks like a webpage link, not an image. Right-click the photo → Copy image address, then paste that here — or upload from your device.'
+  }
+  return "That image link didn't load. Try another direct image URL, or upload from your device."
+}

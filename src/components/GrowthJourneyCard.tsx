@@ -132,14 +132,15 @@ export function GrowthJourneyCard({
           <h2 className="font-display text-xl text-ink sm:text-2xl">
             Your Growth Journey
           </h2>
-          <p className="mt-1 text-sm text-ink-soft">
-            Every day you show up is one drop of water. Miss a day? The flower
-            simply doesn't bloom — no guilt, ever.
+          <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+            {totalDays === 0
+              ? 'Each check-in, reflection, and gratitude moment helps your garden grow. No pressure — just small moments of showing up for yourself.'
+              : 'Every day you show up is one drop of water. Miss a day? The flower simply doesn’t bloom — no guilt, ever.'}
           </p>
 
           <div className="mt-5 flex items-center gap-4">
             <span
-              className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-sage-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:h-20 sm:w-20 ${
+              className={`grid h-16 w-16 shrink-0 place-items-center rounded-full border border-white bg-sage-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:h-20 sm:w-20 ${
                 stage ? '' : 'opacity-50'
               }`}
               aria-hidden="true"
@@ -147,7 +148,7 @@ export function GrowthJourneyCard({
               <span className="animate-sprout-grow">
                 <SeasonIcon
                   id={stage ? stage.id : GARDEN_STAGES[0].id}
-                  className="h-12 w-12 sm:h-16 sm:w-16"
+                  className="text-4xl sm:text-5xl"
                 />
               </span>
             </span>
@@ -156,12 +157,12 @@ export function GrowthJourneyCard({
                 Current season
               </p>
               <p className="mt-0.5 font-display text-2xl text-ink">
-                {stage ? `${stage.label} Season` : 'Ready to plant'}
+                {stage ? `${stage.label} Season` : 'Ready to grow'}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-ink-soft">
                 {stage
                   ? stage.message
-                  : 'Your first check-in plants the first seed of your future.'}
+                  : 'Your first check-in grows the first seed of your future.'}
               </p>
             </div>
           </div>
@@ -194,14 +195,14 @@ export function GrowthJourneyCard({
                 />
               </div>
               <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-soft">
-                <SeasonIcon id={nextStage.id} className="h-5 w-5" />
+                <SeasonIcon id={nextStage.id} className="text-base" />
                 {nextStage.label} in {daysToNext} more{' '}
                 {daysToNext === 1 ? 'day' : 'days'}
               </p>
             </div>
           ) : (
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-soft">
-              <SeasonIcon id="glow-within" className="h-5 w-5" />
+              <SeasonIcon id="glow-within" className="text-base" />
               You've reached every season — keep watering.
             </p>
           )}
@@ -236,14 +237,14 @@ export function GrowthJourneyCard({
                       ? 'bg-white shadow-[inset_0_0_0_1px_rgba(213,224,214,0.9)]'
                       : day.isToday
                         ? 'border border-dashed border-sage-400 bg-transparent'
-                        : 'border border-dashed border-sage-200/80 bg-transparent'
+                        : 'border border-dashed border-[#9E6419] bg-transparent'
                   } ${day.isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
                   aria-hidden="true"
                 >
                   {day.watered ? (
-                    <SeasonIcon id={weekPlantId} className="h-5 w-5" />
+                    <SeasonIcon id={weekPlantId} className="text-base" />
                   ) : day.isToday ? (
-                    <SeasonIcon id="water" className="h-5 w-5 opacity-40" />
+                    <SeasonIcon id="water" className="text-base opacity-40" />
                   ) : null}
                 </span>
                 <span
@@ -269,14 +270,11 @@ export function GrowthJourneyCard({
       >
         {wateredToday ? (
           <>
-            <SeasonIcon id="water" className="h-5 w-5" /> Watered for today —
-            your gratitude is growing
+            <SeasonIcon id="water" className="text-base" /> Watered today — your
+            plant is growing
           </>
         ) : (
-          <>
-            Plant a gratitude to grow today
-            <SeasonIcon id="seed" className="h-5 w-5 brightness-0 invert" />
-          </>
+          'Water with gratitude'
         )}
       </button>
 
@@ -289,14 +287,14 @@ export function GrowthJourneyCard({
               className="fixed inset-0 z-50 grid place-items-center bg-ink/25 px-4 backdrop-blur-sm animate-fade-in"
             >
               <div className="glass-menu w-full max-w-sm rounded-3xl p-8 text-center animate-fade-up">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blush-600">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9E6419]">
                   A new season begins
                 </p>
                 <span
                   className="mx-auto mt-5 grid h-20 w-20 place-items-center rounded-2xl bg-sage-100 animate-soft-pulse"
                   aria-hidden="true"
                 >
-                  <SeasonIcon id={celebration.id} className="h-12 w-12" />
+                  <SeasonIcon id={celebration.id} className="text-5xl" />
                 </span>
                 <h2 className="mt-5 font-display text-3xl tracking-tight text-ink">
                   {celebration.label === 'Sanctuary'
@@ -310,7 +308,7 @@ export function GrowthJourneyCard({
                   type="button"
                   onClick={() => setCelebrated(celebration.index)}
                   autoFocus
-                  className="mt-7 w-full rounded-xl bg-blush-500 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+                  className="mt-7 w-full rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
                 >
                   Keep growing
                 </button>

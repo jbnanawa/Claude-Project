@@ -13,7 +13,7 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
 
   if (goals.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+      <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
         <p className="font-display text-xl text-ink">
           No goals yet — and that's okay
         </p>
@@ -41,10 +41,10 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
           role="tab"
           aria-selected={tab === 'progress'}
           onClick={() => setTab('progress')}
-          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
             tab === 'progress'
-              ? 'bg-blush-500 text-white'
-              : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
+              ? 'bg-sage-400 text-white'
+              : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
           }`}
         >
           In progress ({inProgress.length})
@@ -54,10 +54,10 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
           role="tab"
           aria-selected={tab === 'archived'}
           onClick={() => setTab('archived')}
-          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
+          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
             tab === 'archived'
-              ? 'bg-blush-500 text-white'
-              : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
+              ? 'bg-sage-400 text-white'
+              : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
           }`}
         >
           Completed ({archived.length})
@@ -65,7 +65,7 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
       </div>
 
       {visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-blush-300 bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+        <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
           {tab === 'archived' ? (
             <>
               <p className="font-display text-xl text-ink">

@@ -81,8 +81,8 @@ export function MonthlyIntentionsPreview({
         </div>
         <button
           type="button"
-          onClick={() => onNavigate('goals')}
-          className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-blush-600 transition hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+          onClick={() => onNavigate('goals', 'monthly')}
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-[#9E6419] transition hover:text-[#7d4f14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E6419]"
         >
           {hasContent ? 'Open Intentions' : 'Set them'}
           <svg
@@ -103,7 +103,7 @@ export function MonthlyIntentionsPreview({
       {!hasContent ? (
         <p className="relative mt-5 max-w-md text-sm leading-relaxed text-ink-soft">
           No intentions planted for {monthLabel} yet. Set a focus and a few
-          priorities on Intentions — they'll bloom here as you check weeks off.
+          priorities on Intentions — they'll bloom here as you mark progress.
         </p>
       ) : (
         <div className="relative mt-6 flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
@@ -158,7 +158,7 @@ export function MonthlyIntentionsPreview({
                   )}
                 </p>
                 <p className="mt-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-sage-600">
-                  complete
+                  done
                 </p>
               </div>
             </div>
@@ -199,9 +199,6 @@ export function MonthlyIntentionsPreview({
                       }`}
                     >
                       {weekLabel(priority.weeks)}
-                      {!priority.done && priority.weeks > 0
-                        ? ` · ${priority.weeks}/${WEEKS_PER_PRIORITY}`
-                        : null}
                     </span>
                   </li>
                 ))}

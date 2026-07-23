@@ -49,7 +49,7 @@ export function Dashboard({
   return (
     <div className="space-y-8 sm:space-y-10">
       <header className="animate-fade-up">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blush-600 sm:text-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9E6419] sm:text-sm">
           {timeGreeting()}
         </p>
         <h1 className="mt-2 font-display text-4xl tracking-tight text-ink sm:text-5xl">
@@ -147,14 +147,26 @@ export function Dashboard({
             <h2 className="font-display text-xl text-ink sm:text-2xl">
               Vision board
             </h2>
-            <LinkButton label="View all" onClick={() => onNavigate('vision')} />
+            <LinkButton
+              label="Add vision"
+              onClick={() => onNavigate('vision', 'add-vision')}
+            />
           </div>
 
           {recentVisions.length === 0 ? (
-            <p className="mt-5 text-sm leading-relaxed text-ink-soft">
-              Nothing pinned yet. Add a few images of the life you're dreaming
-              up — future you will love looking back at them.
-            </p>
+            <div className="mt-5 space-y-4">
+              <p className="text-sm leading-relaxed text-ink-soft">
+                Nothing pinned yet. Add a photo, image link, or quote that
+                feels like your future — one piece is enough to start.
+              </p>
+              <button
+                type="button"
+                onClick={() => onNavigate('vision', 'add-vision')}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
+              >
+                Set up my board
+              </button>
+            </div>
           ) : (
             <div className="mt-5 grid grid-cols-3 gap-2.5">
               {recentVisions.map((item) => (
@@ -193,7 +205,7 @@ function LinkButton({ label, onClick }: { label: string; onClick: () => void }) 
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-blush-600 transition hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+      className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-[#9E6419] transition hover:text-[#7d4f14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E6419]"
     >
       {label}
       <svg
