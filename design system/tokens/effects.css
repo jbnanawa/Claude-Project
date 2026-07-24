@@ -1,0 +1,29 @@
+/* Glow Within — Effects: shadows, borders, blur, the glass-card recipe */
+:root {
+  /* Soft, warm-cocoa elevation */
+  --shadow-card: 0 8px 32px 0 rgba(61, 50, 48, 0.08),
+                 inset 0 1px 0 0 rgba(255, 255, 255, 0.8),
+                 inset 0 0 24px 0 rgba(255, 255, 255, 0.25);
+  --shadow-header: 0 1px 12px 0 rgba(61, 50, 48, 0.03);
+  --shadow-btn: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+                0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-pill: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+
+  --blur-glass: 20px;
+
+  /* Translucent glass gradient used inside every card */
+  --glass-fill: linear-gradient(107deg,
+      rgba(255, 253, 251, 0.494) 0%,
+      rgba(255, 248, 245, 0.306) 50%,
+      rgba(255, 253, 251, 0.44) 100%);
+}
+
+/* The signature Glow Within card: glassy fill, white hairline, warm glow. */
+.gw-glass-card {
+  background: var(--glass-fill);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  backdrop-filter: blur(var(--blur-glass));
+}

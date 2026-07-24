@@ -87,6 +87,7 @@ function isProfileOrNull(value: unknown): value is UserProfile | null {
 export default function App() {
   const captureParams = new URLSearchParams(window.location.search)
   const captureView = captureParams.get('view')
+  const captureEmpty = captureParams.get('empty') === '1'
   const captureOnboarding = captureView === 'onboarding'
   const captureStep = captureParams.get('step')
   const onboardingStep =
@@ -326,7 +327,7 @@ export default function App() {
             </p>
           </header>
           <VisionBoard
-            items={visions}
+            items={captureEmpty ? [] : visions}
             onAdd={addVision}
             onDelete={deleteVision}
             onUpdate={updateVision}

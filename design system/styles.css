@@ -1,0 +1,7 @@
+/* Glow Within Design System — global entry point.
+   Consumers link this one file. Keep it @imports only. */
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/effects.css";

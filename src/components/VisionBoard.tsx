@@ -232,13 +232,33 @@ export function VisionBoard({ items, onAdd, onDelete, onUpdate }: VisionBoardPro
     <div className="space-y-8">
       {items.length === 0 ? (
         <div
-          className="rounded-2xl border border-dashed border-[#9E6419]/50 bg-blush-50/40 px-5 py-5 animate-fade-up sm:px-6"
+          className="rounded-[28px] border-2 border-solid border-sage-400 bg-white px-6 py-6 animate-fade-up sm:px-10 sm:py-9"
           aria-label="How to set up your vision board"
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9E6419]">
-            Getting started
-          </p>
-          <ol className="mt-3 space-y-2 text-sm leading-relaxed text-ink-soft">
+          <div className="flex items-center gap-2.5">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-600"
+              aria-hidden="true"
+            >
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18h6" />
+                <path d="M10 21h4" />
+                <path d="M12 3a6 6 0 0 0-4 10.5V15a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.5A6 6 0 0 0 12 3Z" />
+              </svg>
+            </span>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage-600">
+              Getting started
+            </p>
+          </div>
+          <ol className="mt-4 space-y-2.5 text-sm leading-relaxed text-ink-soft sm:mt-5 sm:space-y-3 sm:text-[15px]">
             <li>
               <span className="font-medium text-ink">1.</span> Choose upload,
               paste a direct image link, or create a quote card.

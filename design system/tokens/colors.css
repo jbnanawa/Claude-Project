@@ -1,0 +1,75 @@
+/* Glow Within — Color tokens
+   Warm, tender wellness palette: cream paper, cocoa ink, sage greens,
+   an amber accent, and a soft multi-hue "aura" mesh behind everything. */
+:root {
+  /* ---- Ink / text (warm cocoa) ---- */
+  --gw-ink: rgb(61, 50, 48);        /* headings, primary text */
+  --gw-ink-2: rgb(107, 92, 89);     /* body / secondary */
+  --gw-ink-3: rgb(154, 138, 134);   /* muted / captions / disabled */
+
+  /* ---- Accent (warm amber-gold) ---- */
+  --gw-amber: rgb(158, 100, 25);
+  --gw-amber-soft: rgba(158, 100, 25, 0.15);
+
+  /* ---- Greens (sage growth) ---- */
+  --gw-green: rgb(95, 115, 95);       /* deep sage — primary actions */
+  --gw-sage: rgb(143, 166, 142);      /* sage — soft actions / active */
+  --gw-sage-tint: rgb(213, 224, 214); /* pale sage surfaces */
+  --gw-sage-tint-2: rgb(238, 243, 238);
+
+  /* ---- Warm neutrals / paper ---- */
+  --gw-cream: rgb(255, 248, 245);
+  --gw-cream-2: rgb(253, 240, 235);
+  --gw-cream-3: rgb(247, 243, 239);
+  --gw-blush: rgb(243, 214, 208);
+  --gw-white: rgb(255, 255, 255);
+
+  /* ---- Aura mesh accents (soft, translucent) ----
+     Toned down ~45% for a lighter, paler page. */
+  --gw-aura-coral: rgba(255, 107, 107, 0.12);
+  --gw-aura-gold: rgba(255, 209, 102, 0.11);
+  --gw-aura-olive: rgba(128, 179, 89, 0.08);
+  --gw-aura-teal: rgba(74, 166, 140, 0.09);
+  --gw-aura-magenta: rgba(179, 77, 153, 0.07);
+  --gw-aura-mint: rgba(5, 214, 161, 0.10);
+  --gw-aura-blue: rgba(18, 138, 179, 0.11);
+  --gw-aura-cyan: rgba(26, 153, 179, 0.08);
+  --gw-aura-terra: rgba(204, 140, 128, 0.09);
+  --gw-aura-orange: rgba(255, 163, 107, 0.10);
+
+  /* ================= Semantic aliases ================= */
+  --text-primary: var(--gw-ink);
+  --text-secondary: var(--gw-ink-2);
+  --text-muted: var(--gw-ink-3);
+  --text-accent: var(--gw-amber);
+  --text-on-green: var(--gw-white);
+
+  --brand-primary: var(--gw-green);
+  --brand-soft: var(--gw-sage);
+  --brand-accent: var(--gw-amber);
+
+  --surface-card: rgba(255, 253, 251, 0.46);
+  --surface-header: rgba(255, 248, 245, 0.85);
+  --surface-input: rgba(255, 255, 255, 0.55);
+  --surface-chip: rgba(238, 243, 238, 0.7);
+
+  --border-soft: rgba(243, 214, 208, 0.6);   /* blush hairline */
+  --border-glass: rgba(255, 255, 255, 0.65); /* card edge */
+  --border-input: rgba(213, 224, 214, 0.9);
+  --border-focus: var(--gw-sage);
+  --border-dashed: var(--gw-amber);          /* dashed empty-state */
+
+  /* Page background: aura mesh over a warm cream base. */
+  --surface-page:
+    radial-gradient(1008px 761px at 12% -5%, var(--gw-aura-coral) 0%, transparent 55%),
+    radial-gradient(792px 623px at 88% 8%, var(--gw-aura-gold) 0%, transparent 50%),
+    radial-gradient(720px 554px at 72% 28%, var(--gw-aura-olive) 0%, transparent 55%),
+    radial-gradient(864px 692px at 48% 42%, var(--gw-aura-teal) 0%, transparent 60%),
+    radial-gradient(792px 623px at 18% 58%, var(--gw-aura-magenta) 0%, transparent 55%),
+    radial-gradient(936px 761px at 8% 92%, var(--gw-aura-mint) 0%, transparent 55%),
+    radial-gradient(1008px 692px at 92% 88%, var(--gw-aura-blue) 0%, transparent 55%),
+    radial-gradient(648px 554px at 55% 95%, var(--gw-aura-cyan) 0%, transparent 50%),
+    radial-gradient(576px 484px at 5% 22%, var(--gw-aura-terra) 0%, transparent 50%),
+    radial-gradient(720px 623px at 78% 5%, var(--gw-aura-orange) 0%, transparent 50%),
+    linear-gradient(159deg, rgb(255, 252, 250) 16%, rgb(255, 249, 246) 43%, rgb(252, 250, 247) 84%);
+}

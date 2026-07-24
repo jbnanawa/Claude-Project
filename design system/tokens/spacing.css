@@ -1,0 +1,22 @@
+/* Glow Within — Spacing & radius tokens */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 8px;    /* small buttons / chips */
+  --radius-md: 12px;   /* buttons, nav pills, tabs */
+  --radius-lg: 16px;   /* inputs */
+  --radius-xl: 24px;   /* cards */
+  --radius-full: 9999px;
+
+  /* Layout */
+  --page-max: 1024px;  /* dashboard content column */
+  --header-h: 65px;
+}
