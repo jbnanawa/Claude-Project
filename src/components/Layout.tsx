@@ -1,14 +1,18 @@
 import type { ReactNode } from 'react'
+import { useAuth } from '../auth/AuthContext'
 import type { View } from '../types'
+import logo from '../assets/brand/logo.png'
+import { AccountAvatarButton } from './AccountSettings'
 
 interface LayoutProps {
   view: View
   onNavigate: (view: View) => void
+  profileName?: string
   children: ReactNode
 }
 
 const NAV_ITEMS: {
-  id: View
+  id: Exclude<View, 'account'>
   label: string
   shortLabel: string
   icon: ReactNode
@@ -98,7 +102,18 @@ const NAV_ITEMS: {
   },
 ]
 
-export function Layout({ view, onNavigate, children }: LayoutProps) {
+export function Layout({
+  view,
+  onNavigate,
+  profileName = '',
+  children,
+}: LayoutProps) {
+  const { user, isGuest } = useAuth()
+  const avatarName = isGuest
+    ? profileName || 'Guest'
+    : user?.displayName || profileName || user?.email || 'You'
+  const photoURL = isGuest ? null : user?.photoURL
+
   return (
     <div className="flex min-h-screen flex-col pb-[calc(4.75rem+env(safe-area-inset-bottom))] sm:pb-0">
       <header className="sticky top-0 z-20 border-b border-blush-200/60 bg-blush-50/85 shadow-[0_1px_12px_rgba(61,50,48,0.03)] backdrop-blur-md">
@@ -106,40 +121,53 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
           <button
             type="button"
             onClick={() => onNavigate('dashboard')}
-            className="group flex items-center gap-2.5 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E6419]"
+            className="group flex items-center gap-2.5 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#9E6419]/15 text-sm font-semibold text-[#9E6419] transition group-hover:bg-[#9E6419]/25">
-              Gw
-            </span>
-            <span className="font-display text-lg tracking-tight text-ink sm:text-xl">
-              Glow Within
+            <img
+              src={logo}
+              alt=""
+              draggable={false}
+              className="h-9 w-9 object-contain"
+            />
+            <span className="font-display text-lg tracking-tight text-sage-400 sm:text-xl">
+              Everiora
             </span>
           </button>
 
-          {/* Desktop top nav */}
-          <nav
-            className="hidden items-center gap-1.5 sm:flex"
-            aria-label="Main"
-          >
-            {NAV_ITEMS.map((item) => {
-              const active = view === item.id
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onNavigate(item.id)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`shrink-0 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
-                    active
-                      ? 'bg-sage-400 text-white shadow-[0_4px_14px_rgba(143,166,142,0.35)]'
-                      : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              )
-            })}
-          </nav>
+          <div className="flex items-center gap-1.5">
+            {/* Desktop top nav */}
+            <nav
+              className="hidden items-center gap-1.5 sm:flex"
+              aria-label="Main"
+            >
+              {NAV_ITEMS.map((item) => {
+                const active = view === item.id
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onNavigate(item.id)}
+                    aria-current={active ? 'page' : undefined}
+                    className={`shrink-0 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+                      active
+                        ? 'bg-sage-400 text-white shadow-[0_4px_14px_rgba(81,95,81,0.35)]'
+                        : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
+            </nav>
+
+            <AccountAvatarButton
+              name={avatarName}
+              photoURL={photoURL}
+              isGuest={isGuest}
+              active={view === 'account'}
+              onClick={() => onNavigate('account')}
+            />
+          </div>
         </div>
       </header>
 
@@ -149,7 +177,7 @@ export function Layout({ view, onNavigate, children }: LayoutProps) {
 
       <footer className="mx-auto hidden w-full max-w-5xl px-4 pb-8 pt-4 sm:block sm:px-6">
         <p className="text-center text-xs text-ink-muted">
-          Glow Within · made with love, just for you
+          Everiora · made with love, just for you
         </p>
       </footer>
 

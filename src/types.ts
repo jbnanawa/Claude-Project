@@ -54,4 +54,4 @@ export interface MonthlyIntentions {
   notes: string
 }
 
-export type View = 'dashboard' | 'goals' | 'vision' | 'journal'
+export type View = 'dashboard' | 'goals' | 'vision' | 'journal' | 'account'

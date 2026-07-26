@@ -10,7 +10,6 @@ interface GoalFormProps {
 export function GoalForm({ onAdd }: GoalFormProps) {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<GoalCategory>('Wellness')
-  const [notes, setNotes] = useState('')
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -21,13 +20,12 @@ export function GoalForm({ onAdd }: GoalFormProps) {
       id: createId(),
       title: trimmed,
       category,
-      notes: notes.trim(),
+      notes: '',
       completed: false,
       createdAt: new Date().toISOString(),
     })
 
     setTitle('')
-    setNotes('')
     setCategory('Wellness')
   }
 
@@ -91,25 +89,11 @@ export function GoalForm({ onAdd }: GoalFormProps) {
             </svg>
           </span>
         </label>
-
-        <label className="block sm:col-span-2">
-          <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-            Why this one?{' '}
-            <span className="font-normal text-ink-muted">(optional)</span>
-          </span>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            placeholder="A little note to remind you why this matters..."
-            className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
-          />
-        </label>
       </div>
 
       <button
         type="submit"
-        className="mt-6 w-full rounded-xl bg-sage-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
+        className="mt-6 w-full rounded-xl bg-sage-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
       >
         Add it to the list
       </button>

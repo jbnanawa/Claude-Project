@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { useAuth } from './auth/AuthContext'
+import { AccountSettings } from './components/AccountSettings'
 import { Dashboard } from './components/Dashboard'
 import { Intentions } from './components/Intentions'
 import { Journal } from './components/Journal'
 import { Layout } from './components/Layout'
+import { Login } from './components/Login'
 import { Onboarding } from './components/Onboarding'
 import { VisionBoard } from './components/VisionBoard'
 import { GOAL_CATEGORIES } from './data/categories'
@@ -85,6 +88,7 @@ function isProfileOrNull(value: unknown): value is UserProfile | null {
 }
 
 export default function App() {
+  const { user, isGuest, loading } = useAuth()
   const captureParams = new URLSearchParams(window.location.search)
   const captureView = captureParams.get('view')
   const captureEmpty = captureParams.get('empty') === '1'
@@ -104,7 +108,8 @@ export default function App() {
       next === 'dashboard' ||
       next === 'journal' ||
       next === 'goals' ||
-      next === 'vision'
+      next === 'vision' ||
+      next === 'account'
     ) {
       return next
     }
@@ -114,9 +119,13 @@ export default function App() {
   const [intentionsTab, setIntentionsTab] = useState<'daily' | 'monthly' | null>(
     null,
   )
+  const [journalCompose, setJournalCompose] = useState(false)
+  const [visionCompose, setVisionCompose] = useState(false)
 
   function navigateTo(nextView: View, targetId?: string) {
     scrollTarget.current = targetId ?? null
+    setJournalCompose(nextView === 'journal' && targetId === 'add-gratitude')
+    setVisionCompose(nextView === 'vision' && targetId === 'add-vision')
     if (nextView === 'goals') {
       if (targetId === 'monthly') {
         setIntentionsTab('monthly')
@@ -134,7 +143,7 @@ export default function App() {
   useEffect(() => {
     const target = scrollTarget.current
     scrollTarget.current = null
-    if (target === 'add-goal' || target === 'add-vision') {
+    if (target === 'add-goal' || target === 'add-vision' || target === 'add-gratitude') {
       // Wait a tick so the destination form is mounted.
       requestAnimationFrame(() => {
         document.getElementById(target)?.scrollIntoView({ block: 'start' })
@@ -265,6 +274,18 @@ export default function App() {
     )
   }
 
+  if (loading) {
+    return (
+      <div className="grid min-h-screen place-items-center px-4">
+        <p className="text-sm text-ink-soft animate-fade-in">Opening Everiora…</p>
+      </div>
+    )
+  }
+
+  if (!user && !isGuest) {
+    return <Login />
+  }
+
   if (!activeProfile || captureOnboarding) {
     return (
       <Onboarding
@@ -281,7 +302,11 @@ export default function App() {
   }
 
   return (
-    <Layout view={view} onNavigate={navigateTo}>
+    <Layout
+      view={view}
+      onNavigate={navigateTo}
+      profileName={activeProfile.name}
+    >
       {persistFailed ? (
         <div
           role="alert"
@@ -320,17 +345,13 @@ export default function App() {
             <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
               Vision Board
             </h1>
-            <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
-              Collect images and words that feel like the life you&apos;re
-              growing into. Start with one piece — upload a photo, paste an
-              image link, or make a quote card.
-            </p>
           </header>
           <VisionBoard
             items={captureEmpty ? [] : visions}
             onAdd={addVision}
             onDelete={deleteVision}
             onUpdate={updateVision}
+            startComposing={visionCompose}
           />
         </div>
       )}
@@ -351,9 +372,12 @@ export default function App() {
             onAdd={addJournalEntry}
             onDelete={deleteJournalEntry}
             onUpdate={updateJournalEntry}
+            startComposing={journalCompose}
           />
         </div>
       )}
+
+      {view === 'account' && <AccountSettings profile={activeProfile} />}
     </Layout>
   )
 }

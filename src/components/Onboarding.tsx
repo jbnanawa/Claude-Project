@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { GOAL_CATEGORIES } from '../data/categories'
 import type { GoalCategory, UserProfile } from '../types'
+import logo from '../assets/brand/logo.png'
 
 const STEPS = ['welcome', 'name', 'focus', 'garden'] as const
 type Step = (typeof STEPS)[number]
@@ -64,14 +65,17 @@ export function Onboarding({
         >
           {step === 'welcome' && (
             <div className="text-center">
-              <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#9E6419]/15 text-lg font-semibold text-[#9E6419]">
-                Gw
-              </span>
+              <img
+                src={logo}
+                alt=""
+                draggable={false}
+                className="mx-auto h-14 w-14 object-contain"
+              />
               <p className="mt-6 text-xs font-semibold uppercase tracking-[0.22em] text-sage-600">
                 Welcome to
               </p>
               <h1 className="mt-2 font-display text-4xl tracking-tight text-ink sm:text-5xl">
-                Glow Within
+                Everiora
               </h1>
               <p className="mx-auto mt-4 max-w-sm leading-relaxed text-ink-soft">
                 Your cozy little corner for goals, daily affirmations, vision
@@ -81,7 +85,7 @@ export function Onboarding({
               <button
                 type="button"
                 onClick={() => setStep('name')}
-                className="mt-8 w-full rounded-xl bg-sage-400 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
+                className="mt-8 w-full rounded-xl bg-sage-400 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
               >
                 Let's do this
               </button>
@@ -120,7 +124,7 @@ export function Onboarding({
                 <button
                   type="submit"
                   disabled={!name.trim()}
-                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Continue
                 </button>
@@ -191,7 +195,7 @@ export function Onboarding({
                       </span>
                       <span
                         className={`mt-0.5 block text-xs ${
-                          selected ? 'text-white/80' : 'text-ink-muted'
+                          selected ? 'text-white' : 'text-ink-muted'
                         }`}
                       >
                         {CATEGORY_BLURBS[category]}
@@ -212,7 +216,7 @@ export function Onboarding({
                 <button
                   type="button"
                   onClick={() => setStep('garden')}
-                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
+                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
                 >
                   {focusAreas.length > 0 ? 'Continue' : 'Skip for now'}
                 </button>
@@ -244,7 +248,7 @@ export function Onboarding({
                 <button
                   type="button"
                   onClick={finish}
-                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
+                  className="rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
                 >
                   Start glowing
                 </button>

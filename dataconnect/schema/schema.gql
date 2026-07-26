@@ -1,0 +1,29 @@
+type User @table {
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  notificationSettings: String
+}
+
+type Entry @table {
+  content: String!
+  createdAt: Timestamp!
+  isFavorite: Boolean
+  user: User!
+}
+
+type Tag @table {
+  name: String!
+  user: User!
+}
+
+type EntryTag @table(key: ["entry", "tag"]) {
+  entry: Entry!
+  tag: Tag!
+}
+
+type Reminder @table {
+  time: String!
+  isEnabled: Boolean!
+  user: User!
+}

@@ -13,12 +13,29 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
 
   if (goals.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
-        <p className="font-display text-xl text-ink">
-          No goals yet — and that's okay
+      <div className="rounded-2xl border border-dashed border-accent px-6 py-10 text-center animate-fade-in">
+        <span
+          className="mx-auto grid h-14 w-14 place-items-center text-sage-400"
+          aria-hidden="true"
+        >
+          <svg
+            className="h-7 w-7"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+        </span>
+        <p className="mt-4 font-display text-xl text-ink">
+          No goals yet — and that&apos;s okay
         </p>
         <p className="mt-2 text-sm text-ink-soft">
-          Add your first one above and it'll show up right here.
+          Add your first one above and it&apos;ll show up right here.
         </p>
       </div>
     )
@@ -65,19 +82,52 @@ export function GoalList({ goals, onToggle, onDelete }: GoalListProps) {
       </div>
 
       {visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
+        <div className="rounded-2xl border border-dashed border-accent px-6 py-10 text-center animate-fade-in">
           {tab === 'archived' ? (
             <>
-              <p className="font-display text-xl text-ink">
+              <span
+                className="mx-auto grid h-14 w-14 place-items-center text-sage-400"
+                aria-hidden="true"
+              >
+                <svg
+                  className="h-7 w-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 3l2.2 4.5 5 .7-3.6 3.5.9 5L12 14.8 7.5 16.7l.9-5L4.8 8.2l5-.7L12 3z" />
+                </svg>
+              </span>
+              <p className="mt-4 font-display text-xl text-ink">
                 Nothing checked off yet
               </p>
               <p className="mt-2 text-sm text-ink-soft">
-                No rush — your wins will land here when they're ready.
+                No rush — your wins will land here when they&apos;re ready.
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-xl text-ink">
+              <span
+                className="mx-auto grid h-14 w-14 place-items-center text-sage-400"
+                aria-hidden="true"
+              >
+                <svg
+                  className="h-7 w-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+                </svg>
+              </span>
+              <p className="mt-4 font-display text-xl text-ink">
                 Look at you — all done!
               </p>
               <p className="mt-2 text-sm text-ink-soft">

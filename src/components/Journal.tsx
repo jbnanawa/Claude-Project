@@ -7,8 +7,10 @@ import {
   plantedDays,
   stageForDay,
 } from '../lib/garden'
+import { isRichEmpty, sanitizeRichHtml } from '../lib/richText'
 import type { JournalEntry } from '../types'
 import { JournalCalendar } from './JournalCalendar'
+import { MessageField, RichText } from './MessageField'
 import { SeasonIcon } from './SeasonIcon'
 
 interface JournalProps {
@@ -16,6 +18,8 @@ interface JournalProps {
   onAdd: (entry: JournalEntry) => void
   onDelete: (id: string) => void
   onUpdate: (entry: JournalEntry) => void
+  /** Open the gratitude composer on mount (e.g. from “Water with gratitude”). */
+  startComposing?: boolean
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -41,8 +45,36 @@ function formatEntryDate(iso: string): string {
   })
 }
 
-export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
+/** Soft pastels for water-feed cards — white → color, stable per entry id. */
+const FEED_CARD_COLORS = [
+  'rgba(200, 230, 201, 0.95)', // sage mist
+  'rgba(255, 204, 188, 0.95)', // peach blush
+  'rgba(187, 222, 251, 0.95)', // sky
+  'rgba(225, 190, 231, 0.95)', // lilac
+  'rgba(255, 224, 178, 0.95)', // warm cream
+  'rgba(178, 235, 242, 0.95)', // mint
+  'rgba(248, 187, 208, 0.95)', // rose
+  'rgba(255, 236, 179, 0.95)', // soft butter
+]
+
+function feedCardColor(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  }
+  const color = FEED_CARD_COLORS[hash % FEED_CARD_COLORS.length]
+  return `linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, ${color} 100%)`
+}
+
+export function Journal({
+  entries,
+  onAdd,
+  onDelete,
+  onUpdate,
+  startComposing = false,
+}: JournalProps) {
   const [gratitude, setGratitude] = useState('')
+  const [composing, setComposing] = useState(startComposing)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -50,6 +82,10 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
 
   const planted = plantedDays(entries)
   const season = currentStage(entries) ?? GARDEN_STAGES[0]
+
+  useEffect(() => {
+    if (startComposing) setComposing(true)
+  }, [startComposing])
 
   useEffect(() => {
     if (!openMenuId) return
@@ -70,12 +106,17 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
   }
 
   function saveEditing(entry: JournalEntry) {
-    if (!editGratitude.trim()) return
+    if (isRichEmpty(editGratitude)) return
     onUpdate({
       ...entry,
-      gratitude: editGratitude.trim(),
+      gratitude: sanitizeRichHtml(editGratitude),
     })
     setEditingId(null)
+  }
+
+  function closeComposer() {
+    setComposing(false)
+    setGratitude('')
   }
 
   const sorted = [...entries].sort((a, b) =>
@@ -87,27 +128,31 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
   const checkedInToday =
     sorted.length > 0 && isSameDay(new Date(sorted[0].createdAt), new Date())
 
-  const inputClasses =
-    'w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200'
-
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!gratitude.trim()) return
+    if (isRichEmpty(gratitude)) return
 
     onAdd({
       id: createId(),
       mood: 'content',
-      gratitude: gratitude.trim(),
+      gratitude: sanitizeRichHtml(gratitude),
       text: '',
       createdAt: new Date().toISOString(),
     })
 
     setGratitude('')
+    setComposing(false)
   }
 
   if (checkedInToday) {
     return (
       <div className="space-y-8 sm:space-y-10">
+        <JournalCalendar
+          entries={entries}
+          selectedDay={selectedDay}
+          onSelectDay={setSelectedDay}
+        />
+
         <section
           className="glass-card p-5 animate-fade-up sm:p-6"
           aria-label="Watered with gratitude"
@@ -115,10 +160,12 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
         >
           <div className="flex min-w-0 items-start gap-3">
             <span
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-sage-100"
+              className="grid h-20 w-20 shrink-0 place-items-center rounded-full border border-white bg-sage-100"
               aria-hidden="true"
             >
-              <SeasonIcon id="water" className="text-2xl" />
+              <span className="animate-water-drop">
+                <SeasonIcon id="water" className="text-[3.25rem]" />
+              </span>
             </span>
             <div>
               <h2 className="font-display text-xl text-ink sm:text-2xl">
@@ -134,12 +181,6 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
           </div>
         </section>
 
-        <JournalCalendar
-          entries={entries}
-          selectedDay={selectedDay}
-          onSelectDay={setSelectedDay}
-        />
-
         {renderPastCheckIns()}
       </div>
     )
@@ -147,39 +188,75 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      <form
-        onSubmit={handleSubmit}
-        className="glass-card p-5 animate-fade-up sm:p-6"
-      >
-        <label className="block">
-          <span className="mb-3 block font-display text-xl text-ink sm:text-2xl">
-            Today I&apos;m grateful for…
-          </span>
-          <input
-            type="text"
-            value={gratitude}
-            onChange={(e) => setGratitude(e.target.value)}
-            placeholder="e.g. Morning light through the window"
-            required
-            autoFocus
-            className={`${inputClasses} py-3.5 text-base`}
-          />
-        </label>
-
-        <button
-          type="submit"
-          disabled={!gratitude.trim()}
-          className="mt-8 inline-flex w-full min-h-14 items-center justify-center rounded-2xl bg-sage-400 px-6 py-4 text-base font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Water with gratitude
-        </button>
-      </form>
-
       <JournalCalendar
         entries={entries}
         selectedDay={selectedDay}
         onSelectDay={setSelectedDay}
       />
+
+      {composing ? (
+        <form
+          id="add-gratitude"
+          onSubmit={handleSubmit}
+          className="glass-card scroll-mt-24 p-5 animate-fade-up sm:p-6"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-display text-xl text-ink sm:text-2xl">
+              Today I&apos;m grateful for…
+            </p>
+            <button
+              type="button"
+              onClick={closeComposer}
+              className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="mt-3">
+            <MessageField
+              value={gratitude}
+              onChange={setGratitude}
+              placeholder="e.g. Morning light through the window"
+              autoFocus
+              aria-label="Today I'm grateful for"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isRichEmpty(gratitude)}
+            className="mt-6 inline-flex w-full min-h-14 items-center justify-center rounded-2xl bg-sage-400 px-6 py-4 text-base font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Water with gratitude
+          </button>
+        </form>
+      ) : (
+        <section
+          id="add-gratitude"
+          className="glass-card scroll-mt-24 p-5 animate-fade-up sm:p-6"
+          aria-label="Add gratitude"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl text-ink sm:text-2xl">
+                Today&apos;s gratitude
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+                Add a drop when you&apos;re ready — one note is enough to water
+                your plant.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setComposing(true)}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
+            >
+              <SeasonIcon id="water" className="text-xl" />
+              Add gratitude
+            </button>
+          </div>
+        </section>
+      )}
 
       {renderPastCheckIns()}
     </div>
@@ -190,25 +267,55 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
       <section
         className="animate-fade-up"
         style={{ animationDelay: '100ms' }}
-        aria-label="Past waters"
+        aria-label="Water feed"
       >
-        <h2 className="mb-4 font-display text-2xl text-ink">
-          {selectedDay
-            ? `Waters from ${new Date(`${selectedDay}T12:00:00`).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
-            : 'Past waters'}
-        </h2>
-
         {sorted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
-            <p className="font-display text-xl text-ink">Nothing planted yet</p>
+          <div className="rounded-2xl border border-dashed border-accent px-6 py-10 text-center animate-fade-in">
+            <span
+              className="mx-auto grid h-14 w-14 place-items-center text-sage-400"
+              aria-hidden="true"
+            >
+              <svg
+                className="h-7 w-7"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 3c-3.5 4.5-7 8-7 11.5A7 7 0 0 0 12 21a7 7 0 0 0 7-6.5C19 11 15.5 7.5 12 3Z" />
+              </svg>
+            </span>
+            <p className="mt-4 font-display text-xl text-ink">
+              Nothing in your feed yet
+            </p>
             <p className="mt-2 text-sm text-ink-soft">
-              Once you water a day, your moments will grow here.
+              Once you water a day, your gratitude moments will show up here.
             </p>
           </div>
         ) : visibleEntries.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#9E6419] bg-blush-50/50 px-6 py-10 text-center animate-fade-in">
-            <p className="font-display text-xl text-ink">
-              Nothing left on this day
+          <div className="rounded-2xl border border-dashed border-accent px-6 py-10 text-center animate-fade-in">
+            <span
+              className="mx-auto grid h-14 w-14 place-items-center text-sage-400"
+              aria-hidden="true"
+            >
+              <svg
+                className="h-7 w-7"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18" />
+                <path d="M8 3v4M16 3v4" />
+              </svg>
+            </span>
+            <p className="mt-4 font-display text-xl text-ink">
+              Nothing on this day
             </p>
             <p className="mt-2 text-sm text-ink-soft">
               <button
@@ -218,11 +325,11 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
               >
                 Show everything
               </button>{' '}
-              to see the rest of your garden.
+              to see the rest of your feed.
             </p>
           </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="columns-1 gap-x-3 sm:columns-2">
             {visibleEntries.map((entry, index) => {
               const entryDay = dayKey(new Date(entry.createdAt))
               const entrySeason =
@@ -232,13 +339,14 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                 return (
                   <li
                     key={entry.id}
-                    className="glass-card p-4 animate-fade-up sm:p-5"
+                    className="mb-3 break-inside-avoid glass-card p-4 animate-fade-up sm:p-5"
+                    style={{ background: feedCardColor(entry.id) }}
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-ink">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                      <p className="font-display text-lg leading-none tracking-tight text-ink sm:text-xl">
                         {formatEntryDate(entry.createdAt)}
                       </p>
-                      <span className="text-xs text-ink-muted">
+                      <span className="text-[0.7rem] font-medium uppercase tracking-[0.12em] text-ink-muted">
                         {new Date(entry.createdAt).toLocaleTimeString(
                           undefined,
                           { hour: 'numeric', minute: '2-digit' },
@@ -246,14 +354,16 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                       </span>
                     </div>
 
-                    <input
-                      type="text"
-                      value={editGratitude}
-                      onChange={(e) => setEditGratitude(e.target.value)}
-                      placeholder="Today I'm grateful for…"
-                      required
-                      className={`${inputClasses} mt-3`}
-                    />
+                    <div className="mt-3">
+                      <MessageField
+                        value={editGratitude}
+                        onChange={setEditGratitude}
+                        placeholder="Today I'm grateful for…"
+                        autoFocus
+                        minHeightClass="min-h-24"
+                        aria-label="Edit gratitude"
+                      />
+                    </div>
 
                     <div className="mt-3 flex items-center justify-end gap-2">
                       <button
@@ -266,7 +376,7 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                       <button
                         type="button"
                         onClick={() => saveEditing(entry)}
-                        disabled={!editGratitude.trim()}
+                        disabled={isRichEmpty(editGratitude)}
                         className="rounded-lg bg-blush-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blush-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Save
@@ -279,25 +389,28 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
               return (
                 <li
                   key={entry.id}
-                  className={`glass-card p-4 transition hover:-translate-y-0.5 animate-fade-up sm:p-5 ${
+                  className={`mb-3 break-inside-avoid glass-card p-4 transition hover:-translate-y-0.5 animate-fade-up sm:p-5 ${
                     openMenuId === entry.id ? 'relative z-30' : 'relative z-0'
                   }`}
-                  style={{ animationDelay: `${Math.min(index, 6) * 40}ms` }}
+                  style={{
+                    background: feedCardColor(entry.id),
+                    animationDelay: `${Math.min(index, 6) * 40}ms`,
+                  }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium text-ink">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                        <p className="font-display text-lg leading-none tracking-tight text-ink sm:text-xl">
                           {formatEntryDate(entry.createdAt)}
                         </p>
-                        <span className="text-xs text-ink-muted">
+                        <span className="text-[0.7rem] font-medium uppercase tracking-[0.12em] text-ink-muted">
                           {new Date(entry.createdAt).toLocaleTimeString(
                             undefined,
                             { hour: 'numeric', minute: '2-digit' },
                           )}
                         </span>
                         <span
-                          className="inline-flex items-center gap-1 rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600"
+                          className="inline-flex items-center gap-1 rounded-full border border-sage-200/80 bg-white/55 px-2 py-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-sage-600"
                           title={`${entrySeason.label} season`}
                         >
                           <SeasonIcon
@@ -309,12 +422,15 @@ export function Journal({ entries, onAdd, onDelete, onUpdate }: JournalProps) {
                       </div>
 
                       {entry.gratitude ? (
-                        <p className="mt-2.5 text-sm leading-relaxed text-ink">
+                        <div className="mt-2.5 text-sm leading-relaxed text-ink">
                           <span className="font-medium text-blush-600">
                             Grateful for:
-                          </span>{' '}
-                          {entry.gratitude}
-                        </p>
+                          </span>
+                          <RichText
+                            html={entry.gratitude}
+                            className="mt-1.5 text-ink"
+                          />
+                        </div>
                       ) : null}
 
                       {entry.text ? (

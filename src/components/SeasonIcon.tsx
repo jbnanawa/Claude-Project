@@ -1,4 +1,12 @@
 import type { SeasonId } from '../lib/garden'
+import bloom from '../assets/seasons/bloom.png'
+import forest from '../assets/seasons/forest.png'
+import garden from '../assets/seasons/garden.png'
+import glowWithin from '../assets/seasons/glow-within.png'
+import sanctuary from '../assets/seasons/sanctuary.png'
+import seed from '../assets/seasons/seed.png'
+import sprout from '../assets/seasons/sprout.png'
+import water from '../assets/seasons/water.png'
 
 export type GardenMarkId = SeasonId | 'water'
 
@@ -8,15 +16,15 @@ interface SeasonIconProps {
   title?: string
 }
 
-const EMOJI: Record<GardenMarkId, string> = {
-  seed: '🌱',
-  sprout: '🌿',
-  bloom: '🌸',
-  garden: '🌷',
-  forest: '🌳',
-  sanctuary: '✨',
-  'glow-within': '🌌',
-  water: '💧',
+const SRC: Record<GardenMarkId, string> = {
+  seed,
+  sprout,
+  bloom,
+  garden,
+  forest,
+  sanctuary,
+  'glow-within': glowWithin,
+  water,
 }
 
 /** Garden mark — Seed → Glow Within (+ Water). */
@@ -33,7 +41,12 @@ export function SeasonIcon({
       title={title}
       className={`inline-flex shrink-0 items-center justify-center leading-none ${className}`}
     >
-      {EMOJI[id]}
+      <img
+        src={SRC[id]}
+        alt=""
+        draggable={false}
+        className="h-[1em] w-[1em] object-contain"
+      />
     </span>
   )
 }

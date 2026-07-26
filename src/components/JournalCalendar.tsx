@@ -7,6 +7,7 @@ import {
   stageForDay,
 } from '../lib/garden'
 import type { JournalEntry } from '../types'
+import { RichText } from './MessageField'
 import { SeasonIcon } from './SeasonIcon'
 
 interface JournalCalendarProps {
@@ -174,7 +175,6 @@ export function JournalCalendar({
           const weekday = date.toLocaleDateString(undefined, {
             weekday: 'narrow',
           })
-          const isFuture = isCurrentMonth && key > todayKey
 
           const cellClass = `flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center transition ${
             entry
@@ -187,9 +187,7 @@ export function JournalCalendar({
                 }`
               : isToday
                 ? 'font-semibold text-sage-600 ring-1 ring-inset ring-sage-300'
-                : isFuture
-                  ? 'text-ink-muted/50'
-                  : 'text-ink-muted'
+                : 'text-ink-muted'
           }`
 
           if (!entry) {
@@ -234,16 +232,16 @@ export function JournalCalendar({
               aria-label={`Watered on ${monthLabel} ${dayNumber}, ${daySeason.label} season`}
               className={`${cellClass} hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400`}
             >
-              <span className="text-[0.65rem] font-medium uppercase tracking-wide text-sage-600/80">
+              <span className="text-[0.65rem] font-medium uppercase tracking-wide text-sage-600">
                 {weekday}
               </span>
               <span className="text-sm font-medium leading-none">
                 {dayNumber}
               </span>
-              <span className="flex h-5 items-center justify-center" aria-hidden="true">
+              <span className="flex h-8 items-center justify-center" aria-hidden="true">
                 <SeasonIcon
                   id={daySeason.id}
-                  className="text-base"
+                  className="text-2xl"
                 />
               </span>
             </button>
@@ -302,12 +300,15 @@ export function JournalCalendar({
                       </span>
                     </div>
                     {entry.gratitude ? (
-                      <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      <div className="mt-1.5 text-sm leading-relaxed text-ink">
                         <span className="font-medium text-blush-600">
                           Grateful for:
-                        </span>{' '}
-                        {entry.gratitude}
-                      </p>
+                        </span>
+                        <RichText
+                          html={entry.gratitude}
+                          className="mt-1 text-ink"
+                        />
+                      </div>
                     ) : null}
                     {entry.text ? (
                       <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">

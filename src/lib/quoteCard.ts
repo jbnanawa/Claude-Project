@@ -1,12 +1,14 @@
 /** Builds a soft quote-card image as an SVG data URL for the vision board. */
 export function quoteCardDataUrl(quote: string): string {
-  const lines = wrapQuote(quote.trim(), 28).slice(0, 6)
-  const startY = 300 - ((lines.length - 1) * 36) / 2
+  const lines = wrapQuote(quote.trim(), 20).slice(0, 4)
+  const lineHeight = 58
+  const fontSize = 48
+  const startY = 300 - ((lines.length - 1) * lineHeight) / 2
 
   const textNodes = lines
     .map((line, index) => {
-      const y = startY + index * 36
-      return `<text x="400" y="${y}" text-anchor="middle" fill="#3d3230" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-style="italic">${escapeXml(line)}</text>`
+      const y = startY + index * lineHeight
+      return `<text x="400" y="${y}" text-anchor="middle" fill="#3d3230" font-family="Georgia, 'Times New Roman', serif" font-size="${fontSize}" font-style="italic">${escapeXml(line)}</text>`
     })
     .join('')
 
@@ -18,12 +20,25 @@ export function quoteCardDataUrl(quote: string): string {
     </linearGradient>
   </defs>
   <rect width="800" height="600" fill="url(#bg)"/>
-  <text x="400" y="120" text-anchor="middle" fill="#9E6419" font-family="Georgia, serif" font-size="64" opacity="0.35">“</text>
+  <text x="400" y="115" text-anchor="middle" fill="#A88A51" font-family="Georgia, serif" font-size="84" opacity="0.35">“</text>
   ${textNodes}
   <rect x="340" y="520" width="120" height="2" fill="#c5d4c6"/>
 </svg>`
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+/** True when a vision image is a generated quote card SVG. */
+export function isQuoteCardUrl(imageUrl: string): boolean {
+  return imageUrl.startsWith('data:image/svg+xml')
+}
+
+/** Prefer a freshly rendered quote card so typography updates apply to older pins. */
+export function visionCardImageUrl(imageUrl: string, title: string): string {
+  if (isQuoteCardUrl(imageUrl) && title.trim()) {
+    return quoteCardDataUrl(title)
+  }
+  return imageUrl
 }
 
 function escapeXml(value: string): string {

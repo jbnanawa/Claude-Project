@@ -11,18 +11,12 @@ import { SeasonIcon } from './SeasonIcon'
 
 interface GrowthJourneyCardProps {
   entries: JournalEntry[]
-  onNavigate: (view: View) => void
+  onNavigate: (view: View, targetId?: string) => void
 }
 
 // Ambient magic that appears in the card as the garden grows — no badges,
 // the dashboard just quietly becomes prettier.
 const DECORATIONS = [
-  {
-    at: 7,
-    emoji: '\u{1F98B}',
-    label: 'Butterflies',
-    position: 'right-6 top-5',
-  },
   { at: 14, emoji: '\u{1F41D}', label: 'Bees', position: 'left-[45%] top-4' },
   { at: 30, emoji: '\u{1F308}', label: 'A rainbow', position: 'left-6 top-5' },
   {
@@ -127,8 +121,8 @@ export function GrowthJourneyCard({
         </span>
       ))}
 
-      <div className="relative flex flex-wrap items-start justify-between gap-x-8 gap-y-6">
-        <div className="min-w-0 max-w-md">
+      <div className="relative grid gap-8 sm:grid-cols-2 sm:items-start sm:gap-10">
+        <div className="min-w-0">
           <h2 className="font-display text-xl text-ink sm:text-2xl">
             Your Growth Journey
           </h2>
@@ -148,7 +142,7 @@ export function GrowthJourneyCard({
               <span className="animate-sprout-grow">
                 <SeasonIcon
                   id={stage ? stage.id : GARDEN_STAGES[0].id}
-                  className="text-4xl sm:text-5xl"
+                  className="text-[3rem] sm:text-[4rem]"
                 />
               </span>
             </span>
@@ -166,9 +160,28 @@ export function GrowthJourneyCard({
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigate('journal', 'add-gratitude')}
+            className={`mt-6 w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 sm:w-auto ${
+              wateredToday
+                ? 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-sage-200 bg-sage-100 px-3.5 py-2.5 text-sm font-medium text-sage-600 transition hover:bg-sage-200/70'
+                : 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99]'
+            }`}
+          >
+            {wateredToday ? (
+              <>
+                <SeasonIcon id="water" className="text-2xl" /> Watered today —
+                your plant is growing
+              </>
+            ) : (
+              'Water with gratitude'
+            )}
+          </button>
         </div>
 
-        <div className="w-full sm:max-w-xs">
+        <div className="min-w-0">
           <p className="text-sm text-ink-soft">
             You've shown up{' '}
             <span className="font-display text-2xl tabular-nums text-ink">
@@ -188,21 +201,21 @@ export function GrowthJourneyCard({
                 aria-label={`Progress to ${nextStage.label} Season`}
               >
                 <div
-                  className="h-full rounded-full bg-sage-600 transition-all duration-700"
+                  className="h-full rounded-full bg-sage-400 transition-all duration-700"
                   style={{
                     width: `${Math.max(progressToNext * 100, totalDays > 0 ? 8 : 0)}%`,
                   }}
                 />
               </div>
-              <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-soft">
-                <SeasonIcon id={nextStage.id} className="text-base" />
+              <p className="mt-2 inline-flex items-center gap-2.5 text-sm text-ink-soft">
+                <SeasonIcon id={nextStage.id} className="text-5xl" />
                 {nextStage.label} in {daysToNext} more{' '}
                 {daysToNext === 1 ? 'day' : 'days'}
               </p>
             </div>
           ) : (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-soft">
-              <SeasonIcon id="glow-within" className="text-base" />
+            <p className="mt-3 inline-flex items-center gap-2.5 text-sm text-ink-soft">
+              <SeasonIcon id="glow-within" className="text-5xl" />
               You've reached every season — keep watering.
             </p>
           )}
@@ -232,19 +245,19 @@ export function GrowthJourneyCard({
                           ? 'Not yet'
                           : "Didn't bloom — that's okay"
                   }
-                  className={`mx-auto grid h-9 w-9 place-items-center rounded-full ${
+                  className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
                     day.watered
                       ? 'bg-white shadow-[inset_0_0_0_1px_rgba(213,224,214,0.9)]'
                       : day.isToday
                         ? 'border border-dashed border-sage-400 bg-transparent'
-                        : 'border border-dashed border-[#9E6419] bg-transparent'
+                        : 'border border-dashed border-accent bg-transparent'
                   } ${day.isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
                   aria-hidden="true"
                 >
                   {day.watered ? (
-                    <SeasonIcon id={weekPlantId} className="text-base" />
+                    <SeasonIcon id={weekPlantId} className="text-3xl" />
                   ) : day.isToday ? (
-                    <SeasonIcon id="water" className="text-base opacity-40" />
+                    <SeasonIcon id="water" className="text-3xl opacity-40" />
                   ) : null}
                 </span>
                 <span
@@ -259,25 +272,6 @@ export function GrowthJourneyCard({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => onNavigate('journal')}
-        className={`relative mt-6 w-full sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
-          wateredToday
-            ? 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-sage-200 bg-sage-100 px-3.5 py-2.5 text-sm font-medium text-sage-600 transition hover:bg-sage-200/70'
-            : 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99]'
-        }`}
-      >
-        {wateredToday ? (
-          <>
-            <SeasonIcon id="water" className="text-base" /> Watered today — your
-            plant is growing
-          </>
-        ) : (
-          'Water with gratitude'
-        )}
-      </button>
-
       {celebration
         ? createPortal(
             <div
@@ -287,14 +281,14 @@ export function GrowthJourneyCard({
               className="fixed inset-0 z-50 grid place-items-center bg-ink/25 px-4 backdrop-blur-sm animate-fade-in"
             >
               <div className="glass-menu w-full max-w-sm rounded-3xl p-8 text-center animate-fade-up">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9E6419]">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                   A new season begins
                 </p>
                 <span
-                  className="mx-auto mt-5 grid h-20 w-20 place-items-center rounded-2xl bg-sage-100 animate-soft-pulse"
+                  className="mx-auto mt-5 grid h-32 w-32 place-items-center rounded-2xl bg-sage-100 animate-soft-pulse"
                   aria-hidden="true"
                 >
-                  <SeasonIcon id={celebration.id} className="text-5xl" />
+                  <SeasonIcon id={celebration.id} className="text-[128px]" />
                 </span>
                 <h2 className="mt-5 font-display text-3xl tracking-tight text-ink">
                   {celebration.label === 'Sanctuary'
@@ -308,7 +302,7 @@ export function GrowthJourneyCard({
                   type="button"
                   onClick={() => setCelebrated(celebration.index)}
                   autoFocus
-                  className="mt-7 w-full rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
+                  className="mt-7 w-full rounded-xl bg-sage-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
                 >
                   Keep growing
                 </button>
