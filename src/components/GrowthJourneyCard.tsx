@@ -201,7 +201,7 @@ export function GrowthJourneyCard({
                 aria-label={`Progress to ${nextStage.label} Season`}
               >
                 <div
-                  className="h-full rounded-full bg-sage-400 transition-all duration-700"
+                  className="h-full rounded-full bg-gradient-to-r from-sage-700 to-[#9aaf9a] transition-all duration-700"
                   style={{
                     width: `${Math.max(progressToNext * 100, totalDays > 0 ? 8 : 0)}%`,
                   }}

@@ -45,7 +45,7 @@ export function SeasonIcon({
         src={SRC[id]}
         alt=""
         draggable={false}
-        className="h-[1em] w-[1em] object-contain"
+        className="h-[1em] w-[1em] object-contain opacity-100"
       />
     </span>
   )

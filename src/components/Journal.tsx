@@ -47,23 +47,38 @@ function formatEntryDate(iso: string): string {
 
 /** Soft pastels for water-feed cards — white → color, stable per entry id. */
 const FEED_CARD_COLORS = [
-  'rgba(200, 230, 201, 0.95)', // sage mist
-  'rgba(255, 204, 188, 0.95)', // peach blush
-  'rgba(187, 222, 251, 0.95)', // sky
-  'rgba(225, 190, 231, 0.95)', // lilac
-  'rgba(255, 224, 178, 0.95)', // warm cream
-  'rgba(178, 235, 242, 0.95)', // mint
-  'rgba(248, 187, 208, 0.95)', // rose
-  'rgba(255, 236, 179, 0.95)', // soft butter
-]
+  [200, 230, 201], // sage mist
+  [255, 204, 188], // peach blush
+  [187, 222, 251], // sky
+  [225, 190, 231], // lilac
+  [255, 224, 178], // warm cream
+  [178, 235, 242], // mint
+  [248, 187, 208], // rose
+  [255, 236, 179], // soft butter
+] as const
 
-function feedCardColor(id: string): string {
+function feedCardTone(id: string): readonly [number, number, number] {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
     hash = (hash * 31 + id.charCodeAt(i)) >>> 0
   }
-  const color = FEED_CARD_COLORS[hash % FEED_CARD_COLORS.length]
-  return `linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, ${color} 100%)`
+  return FEED_CARD_COLORS[hash % FEED_CARD_COLORS.length]
+}
+
+function feedCardStyle(id: string): {
+  background: string
+  borderLeft: string
+} {
+  const [r, g, b] = feedCardTone(id)
+  const accent = [
+    Math.round(r * 0.55),
+    Math.round(g * 0.55),
+    Math.round(b * 0.55),
+  ]
+  return {
+    background: `linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(${r}, ${g}, ${b}, 0.95) 100%)`,
+    borderLeft: `5px solid rgb(${accent[0]}, ${accent[1]}, ${accent[2]})`,
+  }
 }
 
 export function Journal({
@@ -88,6 +103,33 @@ export function Journal({
   }, [startComposing])
 
   useEffect(() => {
+    if (!composing) return
+
+    const mq = window.matchMedia('(max-width: 639px)')
+    const previous = document.body.style.overflow
+
+    function syncOverflow() {
+      document.body.style.overflow = mq.matches ? 'hidden' : previous
+    }
+
+    syncOverflow()
+    mq.addEventListener('change', syncOverflow)
+
+    requestAnimationFrame(() => {
+      if (!mq.matches) {
+        document
+          .getElementById('add-gratitude')
+          ?.scrollIntoView({ block: 'start' })
+      }
+    })
+
+    return () => {
+      mq.removeEventListener('change', syncOverflow)
+      document.body.style.overflow = previous
+    }
+  }, [composing])
+
+  useEffect(() => {
     if (!openMenuId) return
     function closeOnOutsideClick(event: PointerEvent) {
       if (!(event.target as Element).closest('[data-journal-menu]')) {
@@ -99,10 +141,23 @@ export function Journal({
       document.removeEventListener('pointerdown', closeOnOutsideClick)
   }, [openMenuId])
 
+  useEffect(() => {
+    if (!editingId) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [editingId])
+
   function startEditing(entry: JournalEntry) {
     setOpenMenuId(null)
     setEditingId(entry.id)
     setEditGratitude(entry.gratitude)
+  }
+
+  function closeEditing() {
+    setEditingId(null)
   }
 
   function saveEditing(entry: JournalEntry) {
@@ -118,6 +173,10 @@ export function Journal({
     setComposing(false)
     setGratitude('')
   }
+
+  const editingEntry = editingId
+    ? entries.find((entry) => entry.id === editingId)
+    : undefined
 
   const sorted = [...entries].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
@@ -195,45 +254,67 @@ export function Journal({
       />
 
       {composing ? (
-        <form
-          id="add-gratitude"
-          onSubmit={handleSubmit}
-          className="glass-card scroll-mt-24 p-5 animate-fade-up sm:p-6"
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:static sm:z-auto sm:block"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-gratitude-title"
         >
-          <div className="flex items-start justify-between gap-3">
-            <p className="font-display text-xl text-ink sm:text-2xl">
-              Today I&apos;m grateful for…
-            </p>
-            <button
-              type="button"
-              onClick={closeComposer}
-              className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-            >
-              Cancel
-            </button>
-          </div>
-          <div className="mt-3">
-            <MessageField
-              value={gratitude}
-              onChange={setGratitude}
-              placeholder="e.g. Morning light through the window"
-              autoFocus
-              aria-label="Today I'm grateful for"
-            />
-          </div>
-
           <button
-            type="submit"
-            disabled={isRichEmpty(gratitude)}
-            className="mt-6 inline-flex w-full min-h-14 items-center justify-center rounded-2xl bg-sage-400 px-6 py-4 text-base font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            aria-label="Dismiss"
+            onClick={closeComposer}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] sm:hidden"
+          />
+          <form
+            id="add-gratitude"
+            onSubmit={handleSubmit}
+            className="relative z-10 max-h-[min(92vh,calc(100%-2.5rem))] w-full overflow-y-auto rounded-t-3xl bg-surface-solid p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] shadow-[0_-12px_40px_rgba(61,50,48,0.2)] animate-slide-up sm:max-h-none sm:overflow-visible sm:rounded-[24px] sm:bg-transparent sm:p-0 sm:pb-0 sm:shadow-none sm:animate-none"
           >
-            Water with gratitude
-          </button>
-        </form>
+            <div className="sm:glass-card sm:scroll-mt-24 sm:p-6 sm:animate-fade-up">
+              <div
+                className="mx-auto mb-4 h-1 w-10 rounded-full bg-sage-200 sm:hidden"
+                aria-hidden="true"
+              />
+              <div className="flex items-start justify-between gap-3">
+                <p
+                  id="add-gratitude-title"
+                  className="font-display text-xl text-ink sm:text-2xl"
+                >
+                  Today I&apos;m grateful for…
+                </p>
+                <button
+                  type="button"
+                  onClick={closeComposer}
+                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="mt-3">
+                <MessageField
+                  value={gratitude}
+                  onChange={setGratitude}
+                  placeholder="e.g. Morning light through the window"
+                  autoFocus
+                  aria-label="Today I'm grateful for"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isRichEmpty(gratitude)}
+                className="mt-6 inline-flex w-full min-h-14 items-center justify-center rounded-2xl bg-sage-400 px-6 py-4 text-base font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Water with gratitude
+              </button>
+            </div>
+          </form>
+        </div>
       ) : (
         <section
           id="add-gratitude"
-          className="glass-card scroll-mt-24 p-5 animate-fade-up sm:p-6"
+          className="hidden glass-card scroll-mt-24 p-5 animate-fade-up sm:block sm:p-6"
           aria-label="Add gratitude"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -259,11 +340,37 @@ export function Journal({
       )}
 
       {renderPastCheckIns()}
+
+      {!composing ? (
+        <button
+          type="button"
+          onClick={() => setComposing(true)}
+          aria-label="Add gratitude"
+          className="fixed right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-sage-400 text-white shadow-[0_8px_24px_rgba(61,50,48,0.22)] transition hover:bg-sage-700 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:hidden"
+          style={{
+            bottom:
+              'calc(4.75rem + env(safe-area-inset-bottom, 0px) + 0.75rem)',
+          }}
+        >
+          <svg
+            className="h-7 w-7"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.25"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      ) : null}
     </div>
   )
 
   function renderPastCheckIns() {
     return (
+      <>
       <section
         className="animate-fade-up"
         style={{ animationDelay: '100ms' }}
@@ -335,57 +442,6 @@ export function Journal({
               const entrySeason =
                 stageForDay(planted, entryDay) ?? GARDEN_STAGES[0]
 
-              if (editingId === entry.id) {
-                return (
-                  <li
-                    key={entry.id}
-                    className="mb-3 break-inside-avoid glass-card p-4 animate-fade-up sm:p-5"
-                    style={{ background: feedCardColor(entry.id) }}
-                  >
-                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                      <p className="font-display text-lg leading-none tracking-tight text-ink sm:text-xl">
-                        {formatEntryDate(entry.createdAt)}
-                      </p>
-                      <span className="text-[0.7rem] font-medium uppercase tracking-[0.12em] text-ink-muted">
-                        {new Date(entry.createdAt).toLocaleTimeString(
-                          undefined,
-                          { hour: 'numeric', minute: '2-digit' },
-                        )}
-                      </span>
-                    </div>
-
-                    <div className="mt-3">
-                      <MessageField
-                        value={editGratitude}
-                        onChange={setEditGratitude}
-                        placeholder="Today I'm grateful for…"
-                        autoFocus
-                        minHeightClass="min-h-24"
-                        aria-label="Edit gratitude"
-                      />
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => saveEditing(entry)}
-                        disabled={isRichEmpty(editGratitude)}
-                        className="rounded-lg bg-blush-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blush-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </li>
-                )
-              }
-
               return (
                 <li
                   key={entry.id}
@@ -393,7 +449,7 @@ export function Journal({
                     openMenuId === entry.id ? 'relative z-30' : 'relative z-0'
                   }`}
                   style={{
-                    background: feedCardColor(entry.id),
+                    ...feedCardStyle(entry.id),
                     animationDelay: `${Math.min(index, 6) * 40}ms`,
                   }}
                 >
@@ -493,6 +549,85 @@ export function Journal({
           </ul>
         )}
       </section>
+
+      {editingEntry ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-gratitude-title"
+        >
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={closeEditing}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
+          />
+          <form
+            className="relative z-10 max-h-[min(90vh,calc(100%-3rem))] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface-solid p-5 shadow-[0_-12px_40px_rgba(61,50,48,0.2)] animate-slide-up sm:rounded-3xl sm:p-6 sm:shadow-[0_20px_60px_rgba(61,50,48,0.28)]"
+            style={{
+              paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+            }}
+            onSubmit={(event) => {
+              event.preventDefault()
+              saveEditing(editingEntry)
+            }}
+          >
+            <div
+              className="mx-auto mb-4 h-1 w-10 rounded-full bg-sage-200 sm:hidden"
+              aria-hidden="true"
+            />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2
+                  id="edit-gratitude-title"
+                  className="font-display text-xl text-ink sm:text-2xl"
+                >
+                  Edit gratitude
+                </h2>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {formatEntryDate(editingEntry.createdAt)}
+                  <span className="text-ink-muted">
+                    {' '}
+                    ·{' '}
+                    {new Date(editingEntry.createdAt).toLocaleTimeString(
+                      undefined,
+                      { hour: 'numeric', minute: '2-digit' },
+                    )}
+                  </span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditing}
+                className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <MessageField
+                value={editGratitude}
+                onChange={setEditGratitude}
+                placeholder="Today I'm grateful for…"
+                autoFocus
+                minHeightClass="min-h-28"
+                aria-label="Edit gratitude"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isRichEmpty(editGratitude)}
+              className="mt-5 w-full rounded-xl bg-blush-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blush-600 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            >
+              Save
+            </button>
+          </form>
+        </div>
+      ) : null}
+    </>
     )
   }
 }

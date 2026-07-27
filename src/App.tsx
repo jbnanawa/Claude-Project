@@ -83,7 +83,9 @@ function isProfileOrNull(value: unknown): value is UserProfile | null {
     Array.isArray(value.focusAreas) &&
     value.focusAreas.every((area) =>
       GOAL_CATEGORIES.includes(area as GoalCategory),
-    )
+    ) &&
+    (value.avatarColor === undefined || typeof value.avatarColor === 'string') &&
+    (value.birthday === undefined || typeof value.birthday === 'string')
   )
 }
 
@@ -121,11 +123,13 @@ export default function App() {
   )
   const [journalCompose, setJournalCompose] = useState(false)
   const [visionCompose, setVisionCompose] = useState(false)
+  const [intentionsCompose, setIntentionsCompose] = useState(false)
 
   function navigateTo(nextView: View, targetId?: string) {
     scrollTarget.current = targetId ?? null
     setJournalCompose(nextView === 'journal' && targetId === 'add-gratitude')
     setVisionCompose(nextView === 'vision' && targetId === 'add-vision')
+    setIntentionsCompose(nextView === 'goals' && targetId === 'add-goal')
     if (nextView === 'goals') {
       if (targetId === 'monthly') {
         setIntentionsTab('monthly')
@@ -246,6 +250,12 @@ export default function App() {
     setGoals((prev) => prev.filter((goal) => goal.id !== id))
   }
 
+  function updateGoal(updated: Goal) {
+    setGoals((prev) =>
+      prev.map((goal) => (goal.id === updated.id ? updated : goal)),
+    )
+  }
+
   function addVision(item: VisionItem) {
     setVisions((prev) => [item, ...prev])
   }
@@ -306,6 +316,7 @@ export default function App() {
       view={view}
       onNavigate={navigateTo}
       profileName={activeProfile.name}
+      profileAvatarColor={activeProfile.avatarColor}
     >
       {persistFailed ? (
         <div
@@ -335,7 +346,9 @@ export default function App() {
           onAddGoal={addGoal}
           onToggleGoal={toggleGoal}
           onDeleteGoal={deleteGoal}
+          onUpdateGoal={updateGoal}
           initialTab={intentionsTab}
+          startComposing={intentionsCompose}
         />
       )}
 
@@ -377,7 +390,12 @@ export default function App() {
         </div>
       )}
 
-      {view === 'account' && <AccountSettings profile={activeProfile} />}
+      {view === 'account' && (
+        <AccountSettings
+          profile={activeProfile}
+          onUpdateProfile={setProfile}
+        />
+      )}
     </Layout>
   )
 }

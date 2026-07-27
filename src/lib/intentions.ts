@@ -4,13 +4,29 @@ export const INTENTIONS_KEY = 'glow-within-intentions'
 export const WEEKS_PER_PRIORITY = 4
 export const MAX_PRIORITIES = 3
 
+/** Map of month key ("2026-07") → intentions for that month. */
+export type MonthlyIntentionsStore = Record<string, MonthlyIntentions>
+
 export function currentMonthKey(date = new Date()): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
-export function emptyIntentions(): MonthlyIntentions {
+export function nextMonthKey(date = new Date()): string {
+  return currentMonthKey(new Date(date.getFullYear(), date.getMonth() + 1, 1))
+}
+
+export function monthLabelFromKey(monthKey: string): string {
+  const [year, month] = monthKey.split('-').map(Number)
+  if (!year || !month) return monthKey
+  return new Date(year, month - 1, 1).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+export function emptyIntentions(month = currentMonthKey()): MonthlyIntentions {
   return {
-    month: currentMonthKey(),
+    month,
     focus: '',
     priorities: Array.from({ length: MAX_PRIORITIES }, () => ''),
     prioritiesDone: Array.from({ length: MAX_PRIORITIES }, () => false),
@@ -101,4 +117,46 @@ export function isMonthlyIntentions(
           (item) => typeof item === 'number' && Number.isFinite(item),
         )))
   )
+}
+
+export function isMonthlyIntentionsStore(
+  value: unknown,
+): value is MonthlyIntentionsStore {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+  // Legacy single-month object
+  if (isMonthlyIntentions(value)) return true
+  return Object.values(value).every((entry) => isMonthlyIntentions(entry))
+}
+
+/** Normalize legacy single-month saves into a month → intentions map. */
+export function coerceIntentionsStore(
+  value: unknown,
+): MonthlyIntentionsStore {
+  if (isMonthlyIntentions(value)) {
+    const done = withDone(value)
+    return { [done.month]: done }
+  }
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every((entry) => isMonthlyIntentions(entry))
+  ) {
+    const store: MonthlyIntentionsStore = {}
+    for (const [key, entry] of Object.entries(value)) {
+      store[key] = withDone(entry as MonthlyIntentions)
+    }
+    return store
+  }
+  return {}
+}
+
+export function intentionsForMonth(
+  store: MonthlyIntentionsStore,
+  monthKey: string,
+): MonthlyIntentions {
+  const existing = store[monthKey]
+  return existing ? withDone(existing) : emptyIntentions(monthKey)
 }

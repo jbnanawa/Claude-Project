@@ -54,7 +54,6 @@ export function VisionBoard({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [tab, setTab] = useState<'progress' | 'archived'>('progress')
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -63,15 +62,29 @@ export function VisionBoard({
   }, [startComposing])
 
   useEffect(() => {
-    if (!openMenuId) return
-    function closeOnOutsideClick(event: PointerEvent) {
-      if (!(event.target as Element).closest('[data-vision-menu]')) {
-        setOpenMenuId(null)
-      }
+    if (!composing) return
+
+    const mq = window.matchMedia('(max-width: 639px)')
+    const previous = document.body.style.overflow
+
+    function syncOverflow() {
+      document.body.style.overflow = mq.matches ? 'hidden' : previous
     }
-    document.addEventListener('pointerdown', closeOnOutsideClick)
-    return () => document.removeEventListener('pointerdown', closeOnOutsideClick)
-  }, [openMenuId])
+
+    syncOverflow()
+    mq.addEventListener('change', syncOverflow)
+
+    requestAnimationFrame(() => {
+      if (!mq.matches) {
+        document.getElementById('add-vision')?.scrollIntoView({ block: 'start' })
+      }
+    })
+
+    return () => {
+      mq.removeEventListener('change', syncOverflow)
+      document.body.style.overflow = previous
+    }
+  }, [composing])
 
   useEffect(() => {
     if (!activeId) return
@@ -88,7 +101,6 @@ export function VisionBoard({
   }, [activeId])
 
   function startEditing(item: VisionItem) {
-    setOpenMenuId(null)
     setActiveId(item.id)
     setEditingId(item.id)
     setEditTitle(item.title)
@@ -97,7 +109,6 @@ export function VisionBoard({
 
   function toggleAchieved(item: VisionItem) {
     onUpdate({ ...item, achieved: !item.achieved })
-    setOpenMenuId(null)
   }
 
   function cancelEditing() {
@@ -328,188 +339,214 @@ export function VisionBoard({
       ) : null}
 
       {composing ? (
-        <form
-          id="add-vision"
-          onSubmit={handleSubmit}
-          className="glass-card scroll-mt-24 p-6 animate-fade-up"
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:static sm:z-auto sm:block"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-vision-title"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="font-display text-xl text-ink sm:text-2xl">
-                {items.length === 0
-                  ? 'Pin your first vision'
-                  : 'Add something to your board'}
-              </h2>
-              <p className="mt-1 text-sm text-ink-soft">
-                {items.length === 0
-                  ? 'One image or quote is enough to begin. You can always add more later.'
-                  : 'Pick how you want to add it — then tell me what it means.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={closeComposer}
-              className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-            >
-              Cancel
-            </button>
-          </div>
-
-          <div className="mt-6 space-y-5">
-            <div>
-              <p className="mb-2 text-sm font-medium text-ink-soft">
-                How do you want to add it?
-              </p>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={closeComposer}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] sm:hidden"
+          />
+          <form
+            id="add-vision"
+            onSubmit={handleSubmit}
+            className="relative z-10 max-h-[min(92vh,calc(100%-2.5rem))] w-full overflow-y-auto rounded-t-3xl glass-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] animate-slide-up sm:max-h-none sm:overflow-visible sm:rounded-[24px] sm:p-6 sm:pb-6 sm:animate-fade-up"
+          >
+            <div className="scroll-mt-24">
               <div
-                className="grid gap-2 sm:grid-cols-3"
-                role="tablist"
-                aria-label="How to add to your board"
-              >
+                className="mx-auto mb-4 h-1 w-10 rounded-full bg-sage-200 sm:hidden"
+                aria-hidden="true"
+              />
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2
+                    id="add-vision-title"
+                    className="font-display text-xl text-ink sm:text-2xl"
+                  >
+                    {items.length === 0
+                      ? 'Pin your first vision'
+                      : 'Add something to your board'}
+                  </h2>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    {items.length === 0
+                      ? 'One image or quote is enough to begin. You can always add more later.'
+                      : 'Pick how you want to add it — then tell me what it means.'}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  role="tab"
-                  aria-selected={addMode === 'upload'}
-                  onClick={() => selectAddMode('upload')}
-                  className={modeButtonClass('upload')}
+                  onClick={closeComposer}
+                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
                 >
-                  Upload image
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={addMode === 'link'}
-                  onClick={() => selectAddMode('link')}
-                  className={modeButtonClass('link')}
-                >
-                  Paste image link
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={addMode === 'quote'}
-                  onClick={() => selectAddMode('quote')}
-                  className={modeButtonClass('quote')}
-                >
-                  Create quote card
+                  Cancel
                 </button>
               </div>
 
-              {addMode === 'upload' ? (
-                <label className="mt-3 block">
-                  <span className="sr-only">Choose an image from your device</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFile}
-                    className="block w-full rounded-xl border border-sage-200 bg-blush-50 px-3 py-3 text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-sage-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-sage-600"
-                  />
-                </label>
-              ) : null}
+              <div className="mt-6 space-y-5">
+                <div>
+                  <p className="mb-2 text-sm font-medium text-ink-soft">
+                    How do you want to add it?
+                  </p>
+                  <div
+                    className="grid gap-2 sm:grid-cols-3"
+                    role="tablist"
+                    aria-label="How to add to your board"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={addMode === 'upload'}
+                      onClick={() => selectAddMode('upload')}
+                      className={modeButtonClass('upload')}
+                    >
+                      Upload image
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={addMode === 'link'}
+                      onClick={() => selectAddMode('link')}
+                      className={modeButtonClass('link')}
+                    >
+                      Paste image link
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={addMode === 'quote'}
+                      onClick={() => selectAddMode('quote')}
+                      className={modeButtonClass('quote')}
+                    >
+                      Create quote card
+                    </button>
+                  </div>
 
-              {addMode === 'link' ? (
-                <label className="mt-3 block">
-                  <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-                    Paste a direct image link
-                  </span>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => handleLinkChange(e.target.value)}
-                    placeholder="https://…/photo.jpg"
-                    className="w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-3 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
-                  />
-                  <span className="mt-1.5 block text-xs text-ink-muted">
-                    Use “Copy image address,” not a webpage URL. Page links won’t
-                    load here.
-                  </span>
-                </label>
-              ) : null}
+                  {addMode === 'upload' ? (
+                    <label className="mt-3 block">
+                      <span className="sr-only">
+                        Choose an image from your device
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFile}
+                        className="block w-full rounded-xl border border-sage-200 bg-blush-50 px-3 py-3 text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-sage-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-sage-600"
+                      />
+                    </label>
+                  ) : null}
 
-              {addMode === 'quote' ? (
-                <label className="mt-3 block">
-                  <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-                    Your quote
-                  </span>
-                  <textarea
-                    value={quote}
-                    onChange={(e) => {
-                      setQuote(e.target.value)
-                      setError('')
+                  {addMode === 'link' ? (
+                    <label className="mt-3 block">
+                      <span className="mb-1.5 block text-sm font-medium text-ink-soft">
+                        Paste a direct image link
+                      </span>
+                      <input
+                        type="url"
+                        value={imageUrl}
+                        onChange={(e) => handleLinkChange(e.target.value)}
+                        placeholder="https://…/photo.jpg"
+                        className="w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-3 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+                      />
+                      <span className="mt-1.5 block text-xs text-ink-muted">
+                        Use “Copy image address,” not a webpage URL. Page links
+                        won’t load here.
+                      </span>
+                    </label>
+                  ) : null}
+
+                  {addMode === 'quote' ? (
+                    <label className="mt-3 block">
+                      <span className="mb-1.5 block text-sm font-medium text-ink-soft">
+                        Your quote
+                      </span>
+                      <textarea
+                        value={quote}
+                        onChange={(e) => {
+                          setQuote(e.target.value)
+                          setError('')
+                        }}
+                        rows={3}
+                        placeholder="Words you want to hold onto..."
+                        className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-3 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+                      />
+                    </label>
+                  ) : null}
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-ink-soft">
+                      What are you envisioning?
+                    </span>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value)
+                        setError('')
+                      }}
+                      placeholder="e.g. Dream home, radiant health, soft mornings"
+                      className="w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+                    />
+                    <span className="mt-1.5 block text-xs text-ink-muted">
+                      A short label for what you’re manifesting.
+                    </span>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-ink-soft">
+                      What does this represent?
+                    </span>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      placeholder="The feeling, the life, the moment you're picturing..."
+                      className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {mediaPreview ? (
+                <div className="mt-4 overflow-hidden rounded-xl border border-blush-200">
+                  <img
+                    src={mediaPreview}
+                    alt="Vision preview"
+                    referrerPolicy="no-referrer"
+                    className="h-44 w-full object-cover"
+                    onLoad={() => {
+                      if (addMode === 'link') {
+                        setLinkBroken(false)
+                        setError('')
+                      }
                     }}
-                    rows={3}
-                    placeholder="Words you want to hold onto..."
-                    className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-3 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+                    onError={handlePreviewError}
                   />
-                </label>
+                </div>
               ) : null}
+
+              {error ? (
+                <p className="mt-3 text-sm text-blush-700">{error}</p>
+              ) : null}
+
+              <button
+                type="submit"
+                className="mt-6 w-full rounded-xl bg-sage-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
+              >
+                Pin it to the board
+              </button>
             </div>
-
-            <div className="space-y-4">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-                  What are you envisioning?
-                </span>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value)
-                    setError('')
-                  }}
-                  placeholder="e.g. Dream home, radiant health, soft mornings"
-                  className="w-full rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
-                />
-                <span className="mt-1.5 block text-xs text-ink-muted">
-                  A short label for what you’re manifesting.
-                </span>
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-ink-soft">
-                  What does this represent?
-                </span>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="The feeling, the life, the moment you're picturing..."
-                  className="w-full resize-y rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
-                />
-              </label>
-            </div>
-          </div>
-
-          {mediaPreview ? (
-            <div className="mt-4 overflow-hidden rounded-xl border border-blush-200">
-              <img
-                src={mediaPreview}
-                alt="Vision preview"
-                referrerPolicy="no-referrer"
-                className="h-44 w-full object-cover"
-                onLoad={() => {
-                  if (addMode === 'link') {
-                    setLinkBroken(false)
-                    setError('')
-                  }
-                }}
-                onError={handlePreviewError}
-              />
-            </div>
-          ) : null}
-
-          {error ? <p className="mt-3 text-sm text-blush-700">{error}</p> : null}
-
-          <button
-            type="submit"
-            className="mt-6 w-full rounded-xl bg-sage-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:w-auto"
-          >
-            Pin it to the board
-          </button>
-        </form>
+          </form>
+        </div>
       ) : (
         <section
           id="add-vision"
-          className="glass-card scroll-mt-24 p-5 animate-fade-up sm:p-6"
+          className="hidden glass-card scroll-mt-24 p-5 animate-fade-up sm:block sm:p-6"
           aria-label="Pin to the board"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -563,39 +600,6 @@ export function VisionBoard({
         </div>
       ) : (
         <div className="space-y-5">
-          <div
-            role="tablist"
-            aria-label="Vision filter"
-            className="glass-card inline-flex items-center gap-1 rounded-xl p-1"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'progress'}
-              onClick={() => setTab('progress')}
-              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
-                tab === 'progress'
-                  ? 'bg-blush-500 text-white'
-                  : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
-              }`}
-            >
-              In progress ({inProgress.length})
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'archived'}
-              onClick={() => setTab('archived')}
-              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400 ${
-                tab === 'archived'
-                  ? 'bg-blush-500 text-white'
-                  : 'text-ink-soft hover:bg-blush-100 hover:text-ink'
-              }`}
-            >
-              Archived ({archived.length})
-            </button>
-          </div>
-
           {visible.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-accent px-6 py-10 text-center animate-fade-in">
               {tab === 'archived' ? (
@@ -681,93 +685,54 @@ export function VisionBoard({
                     />
                   </button>
                   <div className="shrink-0 px-3 py-2.5 sm:px-3.5 sm:py-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <h3 className="truncate font-display text-base text-ink sm:text-lg">
-                          {item.title}
-                        </h3>
-                        {item.achieved ? (
-                          <span className="rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
-                            Achieved
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="relative shrink-0" data-vision-menu>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenMenuId(
-                              openMenuId === item.id ? null : item.id,
-                            )
-                          }
-                          aria-haspopup="menu"
-                          aria-expanded={openMenuId === item.id}
-                          aria-label={`Options for ${item.title}`}
-                          className="rounded-lg px-1.5 py-1 text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            viewBox="0 0 16 16"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <circle cx="8" cy="3" r="1.4" />
-                            <circle cx="8" cy="8" r="1.4" />
-                            <circle cx="8" cy="13" r="1.4" />
-                          </svg>
-                        </button>
-                        {openMenuId === item.id ? (
-                          <div
-                            role="menu"
-                            className="glass-menu absolute right-0 top-full z-10 mt-1 w-44 rounded-xl p-1"
-                          >
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => toggleAchieved(item)}
-                              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-ink transition hover:bg-blush-100"
-                            >
-                              Achieved
-                              {item.achieved ? (
-                                <svg
-                                  className="h-3.5 w-3.5 text-sage-600"
-                                  viewBox="0 0 16 16"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  aria-hidden="true"
-                                >
-                                  <path d="m3 8.5 3.5 3.5L13 5" />
-                                </svg>
-                              ) : null}
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => startEditing(item)}
-                              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink transition hover:bg-blush-100"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => onDelete(item.id)}
-                              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-blush-700 transition hover:bg-blush-100"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <h3 className="truncate font-display text-base text-ink sm:text-lg">
+                        {item.title}
+                      </h3>
+                      {item.achieved ? (
+                        <span className="rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
+                          Achieved
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </article>
               ))}
             </div>
           )}
+
+          <div
+            role="tablist"
+            aria-label="Vision filter"
+            className="glass-card inline-flex items-center gap-1 rounded-full p-1"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'progress'}
+              onClick={() => setTab('progress')}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+                tab === 'progress'
+                  ? 'bg-sage-600 text-white'
+                  : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
+              }`}
+            >
+              In progress ({inProgress.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'archived'}
+              onClick={() => setTab('archived')}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+                tab === 'archived'
+                  ? 'bg-sage-600 text-white'
+                  : 'text-ink-soft hover:bg-sage-100 hover:text-ink'
+              }`}
+            >
+              Archived ({archived.length})
+            </button>
+          </div>
         </div>
       )}
 
@@ -896,6 +861,31 @@ export function VisionBoard({
             </div>
           </div>
         </div>
+      ) : null}
+
+      {!composing ? (
+        <button
+          type="button"
+          onClick={() => setComposing(true)}
+          aria-label="Add vision"
+          className="fixed right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-sage-400 text-white shadow-[0_8px_24px_rgba(61,50,48,0.22)] transition hover:bg-sage-700 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:hidden"
+          style={{
+            bottom:
+              'calc(4.75rem + env(safe-area-inset-bottom, 0px) + 0.75rem)',
+          }}
+        >
+          <svg
+            className="h-7 w-7"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.25"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
       ) : null}
     </div>
   )

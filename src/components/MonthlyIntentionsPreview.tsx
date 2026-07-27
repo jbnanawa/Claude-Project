@@ -1,13 +1,14 @@
-import { useId } from 'react'
+import { useId, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import {
   INTENTIONS_KEY,
   WEEKS_PER_PRIORITY,
+  coerceIntentionsStore,
   currentMonthKey,
-  emptyIntentions,
-  isMonthlyIntentions,
+  intentionsForMonth,
+  isMonthlyIntentionsStore,
   weekLabel,
-  withDone,
+  type MonthlyIntentionsStore,
 } from '../lib/intentions'
 import type { MonthlyIntentions, View } from '../types'
 
@@ -19,16 +20,16 @@ export function MonthlyIntentionsPreview({
   onNavigate,
 }: MonthlyIntentionsPreviewProps) {
   const gaugeGradientId = `intention-gauge-${useId().replace(/:/g, '')}`
-  const [stored] = useLocalStorage<MonthlyIntentions>(
-    INTENTIONS_KEY,
-    emptyIntentions(),
-    isMonthlyIntentions,
-  )
+  const [rawStored] = useLocalStorage<
+    MonthlyIntentionsStore | MonthlyIntentions
+  >(INTENTIONS_KEY, {}, isMonthlyIntentionsStore)
 
-  const monthKey = currentMonthKey()
-  const intentions = withDone(
-    stored.month === monthKey ? stored : emptyIntentions(),
+  const store = useMemo(
+    () => coerceIntentionsStore(rawStored),
+    [rawStored],
   )
+  const monthKey = currentMonthKey()
+  const intentions = intentionsForMonth(store, monthKey)
   const weeks = intentions.priorityWeeks ?? []
   const priorities = intentions.priorities
     .map((text, index) => ({
@@ -64,7 +65,7 @@ export function MonthlyIntentionsPreview({
   return (
     <section
       className="glass-card relative h-full overflow-hidden p-5 sm:p-6"
-      aria-label="Monthly intentions"
+      aria-label="Monthly goals"
     >
       <div
         className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-blush-200/40 blur-2xl"
@@ -89,7 +90,7 @@ export function MonthlyIntentionsPreview({
           onClick={() => onNavigate('goals', 'monthly')}
           className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-accent transition hover:text-accent-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-          {hasContent ? 'Open Intentions' : 'Set them'}
+          {hasContent ? 'Monthly goals' : 'Set them'}
           <svg
             className="h-3.5 w-3.5"
             viewBox="0 0 16 16"
@@ -127,7 +128,7 @@ export function MonthlyIntentionsPreview({
             </svg>
           </span>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-soft">
-            No intentions planted for {monthLabel} yet. Set a focus and a few
+            No goals planted for {monthLabel} yet. Set a focus and a few
             priorities — they&apos;ll bloom here as you mark progress.
           </p>
         </div>
@@ -162,9 +163,9 @@ export function MonthlyIntentionsPreview({
                       x2="100%"
                       y2="0%"
                     >
-                      <stop offset="0%" stopColor="#6b8f7a" />
-                      <stop offset="45%" stopColor="#6a8fa8" />
-                      <stop offset="100%" stopColor="#b8956a" />
+                      <stop offset="0%" stopColor="#3d483d" />
+                      <stop offset="55%" stopColor="#5f735f" />
+                      <stop offset="100%" stopColor="#9aaf9a" />
                     </linearGradient>
                   </defs>
                   {/* Top semicircle: rotate so stroke starts at 9 o'clock and runs to 3. */}

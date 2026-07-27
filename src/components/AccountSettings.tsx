@@ -1,20 +1,35 @@
+import { AVATAR_COLORS, avatarColorById } from '../data/avatarColors'
 import { useAuth } from '../auth/AuthContext'
 import type { UserProfile } from '../types'
 
 interface AccountSettingsProps {
   profile: UserProfile
+  onUpdateProfile: (profile: UserProfile) => void
+}
+
+function formatBirthday(iso: string): string {
+  const date = new Date(`${iso}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return iso
+  return date.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
 function Avatar({
   name,
   photoURL,
+  colorId,
   sizeClass = 'h-16 w-16 text-2xl',
 }: {
   name: string
   photoURL?: string | null
+  colorId?: string
   sizeClass?: string
 }) {
   const initial = (name.trim()[0] || '?').toUpperCase()
+  const color = avatarColorById(colorId)
 
   if (photoURL) {
     return (
@@ -28,7 +43,8 @@ function Avatar({
 
   return (
     <span
-      className={`grid ${sizeClass} place-items-center rounded-full bg-sage-100 font-display font-medium text-sage-600 shadow-[inset_0_0_0_1px_rgba(213,224,214,0.8)]`}
+      className={`grid ${sizeClass} place-items-center rounded-full font-display font-medium shadow-[inset_0_0_0_1px_rgba(213,224,214,0.8)]`}
+      style={{ backgroundColor: color.bg, color: color.text }}
       aria-hidden="true"
     >
       {initial}
@@ -36,7 +52,10 @@ function Avatar({
   )
 }
 
-export function AccountSettings({ profile }: AccountSettingsProps) {
+export function AccountSettings({
+  profile,
+  onUpdateProfile,
+}: AccountSettingsProps) {
   const {
     user,
     isGuest,
@@ -51,6 +70,11 @@ export function AccountSettings({ profile }: AccountSettingsProps) {
     : user?.displayName || profile.name || 'You'
   const email = isGuest ? null : user?.email
   const photoURL = isGuest ? null : user?.photoURL
+  const selectedColor = avatarColorById(profile.avatarColor)
+
+  function patchProfile(patch: Partial<UserProfile>) {
+    onUpdateProfile({ ...profile, ...patch })
+  }
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -64,9 +88,13 @@ export function AccountSettings({ profile }: AccountSettingsProps) {
       </header>
 
       <section className="glass-card p-6 animate-fade-up sm:p-8">
-        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-          <Avatar name={displayName} photoURL={photoURL} />
-          <div className="min-w-0">
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
+          <Avatar
+            name={displayName}
+            photoURL={photoURL}
+            colorId={profile.avatarColor}
+          />
+          <div className="min-w-0 w-full">
             <p className="font-display text-2xl text-ink">{displayName}</p>
             {email ? (
               <p className="mt-1 text-sm text-ink-soft">{email}</p>
@@ -74,8 +102,64 @@ export function AccountSettings({ profile }: AccountSettingsProps) {
             <p className="mt-2 inline-flex items-center rounded-lg border border-sage-200 bg-sage-100/70 px-2.5 py-0.5 text-xs font-medium text-sage-600">
               {isGuest ? 'Guest on this device' : 'Signed in'}
             </p>
+            {profile.birthday ? (
+              <p className="mt-3 text-sm text-ink-soft">
+                Birthday · {formatBirthday(profile.birthday)}
+              </p>
+            ) : null}
           </div>
         </div>
+
+        {!photoURL ? (
+          <div className="mt-6">
+            <p className="text-sm font-medium text-ink">Avatar color</p>
+            <p className="mt-1 text-xs text-ink-muted">
+              Pick a soft wash for your initial.
+            </p>
+            <div
+              className="mt-3 flex flex-wrap gap-2"
+              role="radiogroup"
+              aria-label="Avatar color"
+            >
+              {AVATAR_COLORS.map((color) => {
+                const selected = selectedColor.id === color.id
+                return (
+                  <button
+                    key={color.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={color.label}
+                    title={color.label}
+                    onClick={() => patchProfile({ avatarColor: color.id })}
+                    className={`h-9 w-9 rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+                      selected
+                        ? 'ring-2 ring-sage-400 ring-offset-2 ring-offset-white'
+                        : 'hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: color.bg }}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <label className="mt-6 block">
+          <span className="mb-1.5 block text-sm font-medium text-ink">
+            Birthday
+          </span>
+          <input
+            type="date"
+            value={profile.birthday ?? ''}
+            onChange={(e) =>
+              patchProfile({
+                birthday: e.target.value || undefined,
+              })
+            }
+            className="w-full max-w-xs rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-ink outline-none transition focus:border-sage-400 focus:ring-2 focus:ring-sage-200"
+          />
+        </label>
       </section>
 
       {isGuest ? (
@@ -128,17 +212,20 @@ export function AccountSettings({ profile }: AccountSettingsProps) {
 export function AccountAvatarButton({
   name,
   photoURL,
+  avatarColor,
   isGuest,
   active,
   onClick,
 }: {
   name: string
   photoURL?: string | null
+  avatarColor?: string
   isGuest: boolean
   active?: boolean
   onClick: () => void
 }) {
   const initial = (name.trim()[0] || (isGuest ? 'G' : '?')).toUpperCase()
+  const color = avatarColorById(avatarColor)
 
   return (
     <button
@@ -149,14 +236,17 @@ export function AccountAvatarButton({
       title="Account settings"
       className={`ml-1 grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
         active
-          ? 'ring-2 ring-sage-400 ring-offset-2 ring-offset-blush-50'
+          ? 'ring-2 ring-sage-400 ring-offset-2 ring-offset-white'
           : 'hover:opacity-90'
       }`}
     >
       {photoURL ? (
         <img src={photoURL} alt="" className="h-full w-full object-cover" />
       ) : (
-        <span className="grid h-full w-full place-items-center bg-sage-100 font-display text-sm font-medium text-sage-600">
+        <span
+          className="grid h-full w-full place-items-center font-display text-sm font-medium"
+          style={{ backgroundColor: color.bg, color: color.text }}
+        >
           {initial}
         </span>
       )}

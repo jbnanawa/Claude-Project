@@ -7,7 +7,6 @@ import {
   stageForDay,
 } from '../lib/garden'
 import type { JournalEntry } from '../types'
-import { RichText } from './MessageField'
 import { SeasonIcon } from './SeasonIcon'
 
 interface JournalCalendarProps {
@@ -74,12 +73,6 @@ export function JournalCalendar({
   }
 
   const checkedInCount = wateredInMonth.length
-
-  const selectedEntries = selectedDay
-    ? [...entries]
-        .filter((entry) => dayKey(new Date(entry.createdAt)) === selectedDay)
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-    : []
 
   // Keep today (or the latest watered day) in view when the strip loads.
   useEffect(() => {
@@ -156,7 +149,7 @@ export function JournalCalendar({
 
       <div
         ref={scrollerRef}
-        className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]"
+        className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-2 py-2 [scrollbar-width:thin]"
         role="list"
         aria-label={`${monthLabel} days`}
       >
@@ -248,85 +241,6 @@ export function JournalCalendar({
           )
         })}
       </div>
-
-      {selectedDay ? (
-        <div className="mt-4 rounded-xl border border-sage-200 bg-sage-100/60 p-4 animate-fade-in">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium text-ink">
-              {new Date(`${selectedDay}T12:00:00`).toLocaleDateString(
-                undefined,
-                { weekday: 'long', month: 'long', day: 'numeric' },
-              )}
-            </p>
-            <button
-              type="button"
-              onClick={() => onSelectDay(null)}
-              className="text-sm font-medium text-sage-600 underline-offset-2 transition hover:text-ink hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
-            >
-              Close preview
-            </button>
-          </div>
-
-          {selectedEntries.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              Nothing saved on this day anymore.
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {selectedEntries.map((entry) => {
-                const entrySeason =
-                  stageForDay(
-                    planted,
-                    dayKey(new Date(entry.createdAt)),
-                  ) ?? GARDEN_STAGES[0]
-                return (
-                  <li key={entry.id}>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-lg border border-sage-200 bg-sage-100 px-2 py-0.5 text-xs font-medium text-sage-600">
-                        <SeasonIcon
-                          id={entrySeason.id}
-                          className="text-sm"
-                        />
-                        {entrySeason.label}
-                      </span>
-                      <span className="text-xs text-ink-muted">
-                        {new Date(entry.createdAt).toLocaleTimeString(
-                          undefined,
-                          {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          },
-                        )}
-                      </span>
-                    </div>
-                    {entry.gratitude ? (
-                      <div className="mt-1.5 text-sm leading-relaxed text-ink">
-                        <span className="font-medium text-blush-600">
-                          Grateful for:
-                        </span>
-                        <RichText
-                          html={entry.gratitude}
-                          className="mt-1 text-ink"
-                        />
-                      </div>
-                    ) : null}
-                    {entry.text ? (
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
-                        {entry.text}
-                      </p>
-                    ) : null}
-                    {!entry.gratitude && !entry.text ? (
-                      <p className="mt-1.5 text-sm italic text-ink-muted">
-                        Just a quiet water — no words this time.
-                      </p>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-      ) : null}
     </section>
   )
 }

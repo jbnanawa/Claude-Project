@@ -8,6 +8,7 @@ interface LayoutProps {
   view: View
   onNavigate: (view: View) => void
   profileName?: string
+  profileAvatarColor?: string
   children: ReactNode
 }
 
@@ -60,8 +61,8 @@ const NAV_ITEMS: {
   },
   {
     id: 'goals',
-    label: 'Intentions',
-    shortLabel: 'Intentions',
+    label: 'Goals',
+    shortLabel: 'Goals',
     icon: (
       <svg
         className="h-5 w-5"
@@ -106,6 +107,7 @@ export function Layout({
   view,
   onNavigate,
   profileName = '',
+  profileAvatarColor,
   children,
 }: LayoutProps) {
   const { user, isGuest } = useAuth()
@@ -116,7 +118,7 @@ export function Layout({
 
   return (
     <div className="flex min-h-screen flex-col pb-[calc(4.75rem+env(safe-area-inset-bottom))] sm:pb-0">
-      <header className="sticky top-0 z-20 border-b border-blush-200/60 bg-blush-50/85 shadow-[0_1px_12px_rgba(61,50,48,0.03)] backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-blush-200/60 bg-white shadow-[0_1px_12px_rgba(61,50,48,0.03)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-x-3 px-4 py-3 sm:px-6 sm:py-3.5">
           <button
             type="button"
@@ -163,6 +165,7 @@ export function Layout({
             <AccountAvatarButton
               name={avatarName}
               photoURL={photoURL}
+              avatarColor={profileAvatarColor}
               isGuest={isGuest}
               active={view === 'account'}
               onClick={() => onNavigate('account')}
@@ -197,15 +200,11 @@ export function Layout({
                   aria-current={active ? 'page' : undefined}
                   className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
                     active
-                      ? 'text-sage-600'
+                      ? 'bg-sage-100 text-sage-600'
                       : 'text-ink-muted hover:text-ink-soft'
                   }`}
                 >
-                  <span
-                    className={`grid h-8 w-8 place-items-center rounded-xl transition ${
-                      active ? 'bg-sage-100' : ''
-                    }`}
-                  >
+                  <span className="grid h-8 w-8 place-items-center">
                     {item.icon}
                   </span>
                   <span className="text-[0.65rem] font-medium leading-tight tracking-wide">
