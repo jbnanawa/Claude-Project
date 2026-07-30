@@ -1,0 +1,45 @@
+/* Glow Within — Typography tokens
+   Fraunces (serif) for expressive display/headings; Figtree (sans) for UI. */
+:root {
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Type scale (px transcribed from source) */
+  --text-display: 48px;   /* onboarding hero (Fraunces) */
+  --text-h1: 36px;        /* page title (Fraunces) */
+  --text-h2: 30px;        /* large affirmation (Fraunces) */
+  --text-h3: 24px;        /* card heading (Fraunces) */
+  --text-h4: 20px;        /* wordmark / subhead (Fraunces) */
+  --text-h5: 18px;        /* small serif (Fraunces) */
+  --text-body: 16px;
+  --text-sm: 14px;        /* default UI text */
+  --text-xs: 12px;        /* eyebrow / label */
+  --text-2xs: 10.4px;     /* nav labels / tiny caps */
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-body: 1.625;  /* 14px → 22.75px */
+  --leading-none: 1;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Serif headings carry a touch of negative tracking */
+  --tracking-serif: -0.5px;
+  /* Eyebrows: uppercase, wide tracking */
+  --tracking-eyebrow: 0.16em;
+  --tracking-nav: 0.025em;
+}
+
+/* Reusable eyebrow / kicker label */
+.gw-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
+  line-height: 16px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-accent);
+}

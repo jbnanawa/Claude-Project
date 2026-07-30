@@ -14,7 +14,7 @@ export function AffirmationCard({ compact = false }: AffirmationCardProps) {
 
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl border border-blush-200/80 bg-surface-solid/90 shadow-[0_8px_30px_rgba(196,123,123,0.08)] animate-fade-up ${
+      className={`glass-card relative overflow-hidden animate-fade-up ${
         compact ? 'p-5' : 'p-7 sm:p-8'
       }`}
       style={{ animationDelay: '80ms' }}
@@ -28,8 +28,8 @@ export function AffirmationCard({ compact = false }: AffirmationCardProps) {
         aria-hidden
       />
 
-      <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-blush-600">
-        Daily affirmation
+      <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-accent">
+        A little reminder for you
       </p>
       <p className="relative mt-1 text-sm text-ink-muted">{today}</p>
       <blockquote

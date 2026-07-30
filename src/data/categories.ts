@@ -35,7 +35,7 @@ export const CATEGORY_STYLES: Record<
   },
   Abundance: {
     bg: 'bg-blush-100',
-    text: 'text-blush-600',
+    text: 'text-blush-700',
     border: 'border-blush-200',
   },
   Creativity: {

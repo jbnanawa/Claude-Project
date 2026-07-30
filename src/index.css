@@ -10,17 +10,28 @@
   --color-blush-300: #e8b8b0;
   --color-blush-400: #d4928a;
   --color-blush-500: #c47b7b;
-  --color-blush-600: #a85f62;
-  --color-blush-700: #8a4a4e;
+  /* Blush text tones sized for AA on blush-100 / blush-50 */
+  --color-blush-600: #8a4a4e;
+  --color-blush-700: #734043;
 
   --color-sage-100: #eef3ee;
   --color-sage-200: #d5e0d6;
-  --color-sage-400: #8fa68e;
-  --color-sage-600: #5f735f;
+  --color-sage-400: #515f51;
+  /* Text tones sized for AA (≥4.5:1) on sage-100 / sage-200 chips */
+  --color-sage-600: #4f6150;
+  --color-sage-700: #3d483d;
+
+  /* Gold accent sized for AA (≥4.5:1) on cream, glass, and sage/blush chips */
+  --color-accent: #745e32;
+  --color-accent-700: #5c4a28;
+
+  --color-mist-100: #edf2f7;
+  --color-mist-200: #d3e0ea;
+  --color-mist-600: #455c72;
 
   --color-ink: #3d3230;
-  --color-ink-soft: #6b5c59;
-  --color-ink-muted: #9a8a86;
+  --color-ink-soft: #564845;
+  --color-ink-muted: #635552;
 
   --color-surface: #ffffffcc;
   --color-surface-solid: #fffbf9;
@@ -40,13 +51,36 @@
     min-height: 100vh;
     font-family: var(--font-sans);
     color: var(--color-ink);
-    background:
-      radial-gradient(ellipse 80% 50% at 10% 0%, #f3d6d0 0%, transparent 55%),
-      radial-gradient(ellipse 70% 45% at 90% 10%, #eef3ee 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 50% 100%, #f8e4d8 0%, transparent 55%),
-      linear-gradient(160deg, #fff8f5 0%, #fdf0eb 40%, #f7f3ef 100%);
+    /* Soft wash — cream base + very light aurora so body text stays WCAG AA */
+    background-color: #fffcfa;
+    background-image:
+      radial-gradient(ellipse 70% 55% at 12% -5%, rgba(255, 160, 150, 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 45% at 88% 8%, rgba(255, 220, 150, 0.07) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 72% 28%, rgba(160, 190, 140, 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 48% 42%, rgba(120, 180, 160, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 18% 58%, rgba(190, 140, 175, 0.05) 0%, transparent 55%),
+      radial-gradient(ellipse 65% 55% at 8% 92%, rgba(120, 200, 180, 0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 92% 88%, rgba(130, 180, 200, 0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 40% at 55% 95%, rgba(140, 190, 200, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 35% at 5% 22%, rgba(210, 170, 160, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 45% at 78% 5%, rgba(255, 190, 150, 0.06) 0%, transparent 50%),
+      linear-gradient(160deg, #fffcfa 8.49%, #fff8f5 41.7%, #faf6f2 91.51%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grain overlay — mirrors Figma’s secondary shader (~5% opacity) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+    mix-blend-mode: soft-light;
   }
 
   button,
@@ -55,6 +89,22 @@
   textarea {
     font: inherit;
   }
+
+  ::selection {
+    background: var(--color-blush-200);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -62,8 +112,101 @@
     font-family: var(--font-display);
   }
 
+  /* Liquid glass surface: soft translucent gradient over a backdrop blur,
+     with inset highlights that catch the light like frosted glass. */
+  .glass-card {
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 24px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 253, 251, 0.88) 0%,
+      rgba(255, 250, 247, 0.82) 50%,
+      rgba(255, 253, 251, 0.9) 100%
+    );
+    -webkit-backdrop-filter: blur(20px) saturate(1.35);
+    backdrop-filter: blur(20px) saturate(1.35);
+    box-shadow:
+      0 8px 32px rgba(61, 50, 48, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 0 24px rgba(255, 255, 255, 0.35);
+  }
+
+  /* More opaque glass for floating menus so text stays readable. */
+  .glass-menu {
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 251, 249, 0.94);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    backdrop-filter: blur(24px) saturate(1.6);
+    box-shadow:
+      0 10px 30px rgba(61, 50, 48, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  /* Rich gratitude / message field content. */
+  .message-field-editor {
+    word-break: break-word;
+  }
+
+  .message-field-editor:empty::before {
+    content: none;
+  }
+
+  .message-field-editor p {
+    margin: 0 0 0.5em;
+  }
+
+  .message-field-editor p:last-child {
+    margin-bottom: 0;
+  }
+
+  .message-field-editor ul,
+  .message-field-editor ol {
+    margin: 0.35em 0 0.5em;
+    padding-left: 1.35rem;
+  }
+
+  .message-field-editor ul {
+    list-style: disc;
+  }
+
+  .message-field-editor ol {
+    list-style: decimal;
+  }
+
+  .message-field-editor li {
+    margin: 0.15em 0;
+  }
+
+  .message-field-editor li + li {
+    margin-top: 0.2em;
+  }
+
+  .message-field-editor strong,
+  .message-field-editor b {
+    font-weight: 600;
+  }
+
+  .message-field-editor img {
+    display: block;
+    max-width: 100%;
+    margin: 0.6em 0;
+    border-radius: 12px;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-card,
+    .glass-menu {
+      background: var(--color-surface-solid);
+    }
+  }
+
   .animate-fade-up {
     animation: fade-up 0.55s ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .animate-fade-in {
@@ -73,12 +216,42 @@
   .animate-soft-pulse {
     animation: soft-pulse 4s ease-in-out infinite;
   }
+
+  .animate-gentle-sway {
+    animation: gentle-sway 3.5s ease-in-out infinite;
+    transform-origin: 50% 85%;
+  }
+
+  /* Grows up from the soil like a seed sprouting, then keeps swaying. */
+  .animate-sprout-grow {
+    animation:
+      sprout-grow 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+      gentle-sway 3.5s ease-in-out 1.1s infinite;
+    transform-origin: 50% 85%;
+  }
+
+  /* Soft droplet bob — like a drop settling on water. */
+  .animate-water-drop {
+    animation: water-drop 2.8s ease-in-out infinite;
+    transform-origin: 50% 80%;
+  }
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
     transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0.85;
+    transform: translateY(100%);
   }
   to {
     opacity: 1;
@@ -95,6 +268,30 @@
   }
 }
 
+@keyframes sprout-grow {
+  from {
+    transform: scale(0.15) translateY(35%);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes gentle-sway {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-2px);
+  }
+}
+
 @keyframes soft-pulse {
   0%,
   100% {
@@ -104,5 +301,21 @@
   50% {
     transform: scale(1.06);
     opacity: 0.85;
+  }
+}
+
+@keyframes water-drop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(3px) scale(0.96, 1.04);
+  }
+  55% {
+    transform: translateY(-2px) scale(1.03, 0.97);
+  }
+  70% {
+    transform: translateY(1px) scale(0.99, 1.01);
   }
 }
