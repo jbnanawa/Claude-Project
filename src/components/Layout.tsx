@@ -20,8 +20,8 @@ const NAV_ITEMS: {
 }[] = [
   {
     id: 'dashboard',
-    label: 'Today',
-    shortLabel: 'Today',
+    label: 'Home',
+    shortLabel: 'Home',
     icon: (
       <svg
         className="h-5 w-5"
@@ -33,8 +33,9 @@ const NAV_ITEMS: {
         strokeLinejoin="round"
         aria-hidden="true"
       >
-        <circle cx="10" cy="10" r="3.2" />
-        <path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8M4.7 4.7l1.3 1.3M14 14l1.3 1.3M4.7 15.3l1.3-1.3M14 6l1.3-1.3" />
+        <path d="M3.5 9.2 10 3.5l6.5 5.7" />
+        <path d="M5.2 8.5V16h9.6V8.5" />
+        <path d="M8.2 16v-4.2h3.6V16" />
       </svg>
     ),
   },

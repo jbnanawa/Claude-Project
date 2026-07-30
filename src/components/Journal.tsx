@@ -453,7 +453,7 @@ export function Journal({
                     animationDelay: `${Math.min(index, 6) * 40}ms`,
                   }}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3 border-b border-sage-200/70 pb-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                         <p className="font-display text-lg leading-none tracking-tight text-ink sm:text-xl">
@@ -476,24 +476,6 @@ export function Journal({
                           {entrySeason.label}
                         </span>
                       </div>
-
-                      {entry.gratitude ? (
-                        <div className="mt-2.5 text-sm leading-relaxed text-ink">
-                          <span className="font-medium text-blush-600">
-                            Grateful for:
-                          </span>
-                          <RichText
-                            html={entry.gratitude}
-                            className="mt-1.5 text-ink"
-                          />
-                        </div>
-                      ) : null}
-
-                      {entry.text ? (
-                        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
-                          {entry.text}
-                        </p>
-                      ) : null}
                     </div>
 
                     <div className="relative shrink-0" data-journal-menu>
@@ -543,6 +525,24 @@ export function Journal({
                       ) : null}
                     </div>
                   </div>
+
+                  {entry.gratitude ? (
+                    <div className="mt-3 text-sm leading-relaxed text-ink">
+                      <span className="font-medium text-blush-600">
+                        Grateful for:
+                      </span>
+                      <RichText
+                        html={entry.gratitude}
+                        className="mt-1.5 text-ink"
+                      />
+                    </div>
+                  ) : null}
+
+                  {entry.text ? (
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+                      {entry.text}
+                    </p>
+                  ) : null}
                 </li>
               )
             })}

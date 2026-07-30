@@ -292,7 +292,8 @@ export default function App() {
     )
   }
 
-  if (!user && !isGuest) {
+  // Capture deep-links skip the login gate so Figma exports can open any view.
+  if (!user && !isGuest && !captureView) {
     return <Login />
   }
 
@@ -303,7 +304,8 @@ export default function App() {
         initialStep={captureOnboarding ? onboardingStep : 'welcome'}
         initialName={captureOnboarding && onboardingStep !== 'welcome' ? 'Janelle' : ''}
         initialFocusAreas={
-          captureOnboarding && onboardingStep === 'focus'
+          captureOnboarding &&
+          (onboardingStep === 'focus' || onboardingStep === 'garden')
             ? ['Wellness', 'Mindset']
             : []
         }
