@@ -245,7 +245,7 @@ export function GrowthJourneyCard({
                           ? 'Not yet'
                           : "Didn't bloom — that's okay"
                   }
-                  className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
+                  className={`mx-auto grid h-8 w-8 place-items-center rounded-full ${
                     day.watered
                       ? 'bg-white shadow-[inset_0_0_0_1px_rgba(213,224,214,0.9)]'
                       : day.isToday
@@ -255,9 +255,9 @@ export function GrowthJourneyCard({
                   aria-hidden="true"
                 >
                   {day.watered ? (
-                    <SeasonIcon id={weekPlantId} className="text-3xl" />
+                    <SeasonIcon id={weekPlantId} className="text-xl" />
                   ) : day.isToday ? (
-                    <SeasonIcon id="water" className="text-3xl opacity-40" />
+                    <SeasonIcon id="water" className="text-xl opacity-40" />
                   ) : null}
                 </span>
                 <span
