@@ -11,7 +11,6 @@ function createNorthlineScreener() {
     "Your answers are only seen by me and are deleted after the study."
   );
   form.setCollectEmail(false);
-  form.setLimitOneResponsePerUser(false);
   form.setConfirmationMessage("Thanks! If you're a good fit, I'll email you within a few days to book a time.");
 
   form.addMultipleChoiceItem()
