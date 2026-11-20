@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { GOAL_CATEGORIES } from '../data/categories'
 import { syncGoalToCalendar } from '../lib/calendar'
 import { createId } from '../lib/id'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import type {
   Goal,
   GoalCalendar,
@@ -32,6 +33,11 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
   const [locationLat, setLocationLat] = useState<number | undefined>()
   const [locationLng, setLocationLng] = useState<number | undefined>()
   const [calendarSync, setCalendarSync] = useState<GoalCalendar>('none')
+  const [advanced, setAdvanced] = useLocalStorage<boolean>(
+    'goal-form-advanced',
+    false,
+    (value): value is boolean => typeof value === 'boolean',
+  )
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)')
@@ -66,7 +72,12 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
     const trimmed = title.trim()
     if (!trimmed) return
 
-    const trimmedLocation = location.trim()
+    // Simple mode saves only the title and category; the hidden fields
+    // fall back to their defaults so nothing set earlier sneaks in.
+    const trimmedLocation = advanced ? location.trim() : ''
+    const savedRepeat: GoalRepeat = advanced ? repeat : 'none'
+    const savedAlert = advanced && alertEnabled
+    const savedCalendar: GoalCalendar = advanced ? calendarSync : 'none'
 
     const goal: Goal = {
       id: createId(),
@@ -75,9 +86,9 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
       notes: '',
       completed: false,
       createdAt: new Date().toISOString(),
-      repeat,
-      alertEnabled,
-      ...(alertEnabled ? { alertTime } : {}),
+      repeat: savedRepeat,
+      alertEnabled: savedAlert,
+      ...(savedAlert ? { alertTime } : {}),
       ...(trimmedLocation
         ? {
             location: trimmedLocation,
@@ -87,7 +98,7 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
               : {}),
           }
         : {}),
-      calendarSync,
+      calendarSync: savedCalendar,
     }
 
     onAdd(goal)
@@ -124,6 +135,37 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
           ) : null}
         </div>
 
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5">
+          <div className="min-w-0">
+            <p
+              id={`${options.titleId ?? 'goal-form'}-advanced-label`}
+              className="text-sm font-medium text-ink"
+            >
+              Advanced goal setting
+            </p>
+            <p className="text-xs text-ink-muted">
+              Add repeat, reminders, location, and calendar sync.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={advanced}
+            aria-labelledby={`${options.titleId ?? 'goal-form'}-advanced-label`}
+            onClick={() => setAdvanced(!advanced)}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+              advanced ? 'bg-sage-400' : 'bg-sage-200'
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                advanced ? 'translate-x-[1.375rem]' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
@@ -140,7 +182,7 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
             />
           </label>
 
-          <label className="block">
+          <label className={advanced ? 'block' : 'block sm:col-span-2'}>
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
               Category
             </span>
@@ -160,6 +202,8 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
             </span>
           </label>
 
+          {advanced ? (
+          <>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-ink-soft">
               Repeat
@@ -252,6 +296,8 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
                     : 'Choose a calendar to add this goal when you save.'}
             </p>
           </label>
+          </>
+          ) : null}
         </div>
 
         <button
