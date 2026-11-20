@@ -1,4 +1,4 @@
-import type { MonthlyIntentions } from '../types'
+import type { GoalRepeat, MonthlyIntentions } from '../types'
 
 export const INTENTIONS_KEY = 'glow-within-intentions'
 export const WEEKS_PER_PRIORITY = 4
@@ -42,12 +42,18 @@ export function withPrioritySlots(
   const priorities = [...intentions.priorities]
   const weeks = [...(intentions.priorityWeeks ?? [])]
   const done = [...(intentions.prioritiesDone ?? [])]
+  const categories = [...(intentions.priorityCategories ?? [])]
+  const repeats = [...(intentions.priorityRepeats ?? [])]
+  const alerts = [...(intentions.priorityAlerts ?? [])]
 
   while (priorities.length < MAX_PRIORITIES) {
     priorities.push('')
     weeks.push(0)
     done.push(false)
   }
+  while (categories.length < MAX_PRIORITIES) categories.push(null)
+  while (repeats.length < MAX_PRIORITIES) repeats.push('none' as GoalRepeat)
+  while (alerts.length < MAX_PRIORITIES) alerts.push(null)
 
   return {
     ...intentions,
@@ -58,6 +64,9 @@ export function withPrioritySlots(
         Math.max(0, Math.min(WEEKS_PER_PRIORITY, Math.round(count || 0))),
       ),
     prioritiesDone: done.slice(0, MAX_PRIORITIES),
+    priorityCategories: categories.slice(0, MAX_PRIORITIES),
+    priorityRepeats: repeats.slice(0, MAX_PRIORITIES),
+    priorityAlerts: alerts.slice(0, MAX_PRIORITIES),
   }
 }
 
@@ -115,8 +124,26 @@ export function isMonthlyIntentions(
       (Array.isArray(record.priorityWeeks) &&
         record.priorityWeeks.every(
           (item) => typeof item === 'number' && Number.isFinite(item),
-        )))
+        ))) &&
+    isOptionalArrayOf(record.priorityCategories, isStringOrNull) &&
+    isOptionalArrayOf(record.priorityRepeats, isString) &&
+    isOptionalArrayOf(record.priorityAlerts, isStringOrNull)
   )
+}
+
+function isString(item: unknown): boolean {
+  return typeof item === 'string'
+}
+
+function isStringOrNull(item: unknown): boolean {
+  return item === null || typeof item === 'string'
+}
+
+function isOptionalArrayOf(
+  value: unknown,
+  check: (item: unknown) => boolean,
+): boolean {
+  return value === undefined || (Array.isArray(value) && value.every(check))
 }
 
 export function isMonthlyIntentionsStore(

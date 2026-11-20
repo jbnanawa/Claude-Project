@@ -76,6 +76,12 @@ export interface MonthlyIntentions {
   prioritiesDone?: boolean[]
   /** Weeks lived toward each priority (0–4). Four weeks = completed. */
   priorityWeeks?: number[]
+  /** Parallel to priorities, set from Customize. null means no category. */
+  priorityCategories?: (GoalCategory | null)[]
+  /** Parallel to priorities, set from Customize. */
+  priorityRepeats?: GoalRepeat[]
+  /** Parallel to priorities: reminder time as HH:mm (24h), or null when off. */
+  priorityAlerts?: (string | null)[]
   notes: string
 }
 

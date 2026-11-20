@@ -14,7 +14,14 @@ import {
   withDone,
   type MonthlyIntentionsStore,
 } from '../lib/intentions'
-import type { MonthlyIntentions } from '../types'
+import { CATEGORY_STYLES, GOAL_CATEGORIES } from '../data/categories'
+import type { GoalCategory, GoalRepeat, MonthlyIntentions } from '../types'
+import {
+  REPEAT_OPTIONS,
+  SelectChevron,
+  goalFieldClass,
+  goalSelectClass,
+} from './GoalFields'
 import { SheetCloseButton } from './SheetCloseButton'
 
 const PRIORITY_PROMPTS = [
@@ -150,7 +157,17 @@ export function MonthlyIntentionsCard({
     draft.notes !== saved.notes ||
     draft.priorities.length !== saved.priorities.length ||
     draft.priorities.some((item, index) => item !== saved.priorities[index]) ||
-    draftWeeks.some((weeks, index) => weeks !== savedWeeks[index])
+    draftWeeks.some((weeks, index) => weeks !== savedWeeks[index]) ||
+    JSON.stringify([
+      draft.priorityCategories,
+      draft.priorityRepeats,
+      draft.priorityAlerts,
+    ]) !==
+      JSON.stringify([
+        saved.priorityCategories,
+        saved.priorityRepeats,
+        saved.priorityAlerts,
+      ])
 
   const monthLabel = monthLabelFromKey(monthKey)
   const currentMonthLabel = monthLabelFromKey(currentMonthKey())
@@ -217,6 +234,33 @@ export function MonthlyIntentionsCard({
     update({ priorities: priorities.slice(0, MAX_PRIORITIES) })
   }
 
+  function updatePrioritySetting(
+    index: number,
+    patch: {
+      category?: GoalCategory | null
+      repeat?: GoalRepeat
+      alert?: string | null
+    },
+  ) {
+    setDraft((prev) => {
+      const pad = <T,>(list: T[] | undefined, fill: T) =>
+        Array.from({ length: MAX_PRIORITIES }, (_, i) => list?.[i] ?? fill)
+      const categories = pad<GoalCategory | null>(prev.priorityCategories, null)
+      const repeats = pad<GoalRepeat>(prev.priorityRepeats, 'none')
+      const alerts = pad<string | null>(prev.priorityAlerts, null)
+      if ('category' in patch) categories[index] = patch.category ?? null
+      if (patch.repeat) repeats[index] = patch.repeat
+      if ('alert' in patch) alerts[index] = patch.alert ?? null
+      return {
+        ...prev,
+        month: monthKey,
+        priorityCategories: categories,
+        priorityRepeats: repeats,
+        priorityAlerts: alerts,
+      }
+    })
+  }
+
   function setWeeks(index: number, weeks: number) {
     if (isFutureMonth) return
     setDraft((prev) => {
@@ -280,7 +324,7 @@ export function MonthlyIntentionsCard({
               Customize monthly goals
             </p>
             <p className="text-xs text-ink-muted">
-              Add more priorities, a reason why, and plan next month.
+              More priorities with category, repeat and alert, a reason why, and next month.
             </p>
           </div>
           <button
@@ -379,6 +423,9 @@ export function MonthlyIntentionsCard({
               const hasText = priority.trim().length > 0
               const statusLabel = weekLabel(weeks)
               const complete = weeks >= WEEKS_PER_PRIORITY
+              const category = draft.priorityCategories?.[index] ?? null
+              const repeat = draft.priorityRepeats?.[index] ?? 'none'
+              const alert = draft.priorityAlerts?.[index] ?? null
 
               if (!editing && !hasText) return null
               if (!showPriority(index)) return null
@@ -479,6 +526,123 @@ export function MonthlyIntentionsCard({
                           },
                         )}
                       </div>
+                    </div>
+                  ) : null}
+
+                  {editing && customize ? (
+                    <div className="mt-3 grid gap-2.5 sm:pl-10">
+                      <div className="grid gap-2.5 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-xs font-medium text-ink-soft">
+                            Category
+                          </span>
+                          <span className="relative block">
+                            <select
+                              value={category ?? ''}
+                              onChange={(e) =>
+                                updatePrioritySetting(index, {
+                                  category: (e.target.value ||
+                                    null) as GoalCategory | null,
+                                })
+                              }
+                              aria-label={`Priority ${index + 1} category`}
+                              className={`${goalSelectClass} text-sm`}
+                            >
+                              <option value="">No category</option>
+                              {GOAL_CATEGORIES.map((item) => (
+                                <option key={item} value={item}>
+                                  {item}
+                                </option>
+                              ))}
+                            </select>
+                            <SelectChevron />
+                          </span>
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-xs font-medium text-ink-soft">
+                            Repeat
+                          </span>
+                          <span className="relative block">
+                            <select
+                              value={repeat}
+                              onChange={(e) =>
+                                updatePrioritySetting(index, {
+                                  repeat: e.target.value as GoalRepeat,
+                                })
+                              }
+                              aria-label={`Priority ${index + 1} repeat`}
+                              className={`${goalSelectClass} text-sm`}
+                            >
+                              {REPEAT_OPTIONS.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                            <SelectChevron />
+                          </span>
+                        </label>
+                      </div>
+                      <div>
+                        <span className="mb-1 block text-xs font-medium text-ink-soft">
+                          Alert
+                        </span>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5 text-sm text-ink">
+                            <input
+                              type="checkbox"
+                              checked={alert !== null}
+                              onChange={(e) =>
+                                updatePrioritySetting(index, {
+                                  alert: e.target.checked ? '09:00' : null,
+                                })
+                              }
+                              aria-label={`Remind me about priority ${index + 1}`}
+                              className="h-4 w-4 accent-sage-600"
+                            />
+                            Remind me
+                          </label>
+                          <label
+                            className={`relative block min-w-[9.5rem] flex-1 ${
+                              alert !== null ? '' : 'pointer-events-none opacity-45'
+                            }`}
+                          >
+                            <span className="sr-only">
+                              Priority {index + 1} alert time
+                            </span>
+                            <input
+                              type="time"
+                              value={alert ?? '09:00'}
+                              onChange={(e) =>
+                                updatePrioritySetting(index, {
+                                  alert: e.target.value || '09:00',
+                                })
+                              }
+                              disabled={alert === null}
+                              className={`${goalFieldClass} text-sm`}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  ) : !editing && hasText && (category || repeat !== 'none' || alert) ? (
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 pl-10 text-xs">
+                      {category ? (
+                        <span
+                          className={`rounded-full border px-2 py-0.5 font-medium ${CATEGORY_STYLES[category].bg} ${CATEGORY_STYLES[category].text} ${CATEGORY_STYLES[category].border}`}
+                        >
+                          {category}
+                        </span>
+                      ) : null}
+                      {repeat !== 'none' ? (
+                        <span className="text-ink-muted">
+                          {REPEAT_OPTIONS.find((item) => item.value === repeat)
+                            ?.label ?? ''}
+                        </span>
+                      ) : null}
+                      {alert ? (
+                        <span className="text-ink-muted">Alert {alert}</span>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
