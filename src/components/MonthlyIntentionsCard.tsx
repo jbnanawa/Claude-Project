@@ -60,6 +60,11 @@ export function MonthlyIntentionsCard({
   }, [storeEmpty, onEmptyChange])
 
   const [scope, setScope] = useState<MonthScope>('current')
+  const [customize, setCustomize] = useLocalStorage<boolean>(
+    'monthly-form-customize',
+    false,
+    (value): value is boolean => typeof value === 'boolean',
+  )
   const monthKey =
     scope === 'current' ? currentMonthKey() : nextMonthKey()
   const isFutureMonth = scope === 'next'
@@ -155,6 +160,19 @@ export function MonthlyIntentionsCard({
     (weeks, index) =>
       draft.priorities[index]?.trim() && weeks >= WEEKS_PER_PRIORITY,
   ).length
+
+  // Simple mode while editing: focus and the first priority. Customize adds
+  // the other priorities, the "why" note and next-month planning. Anything
+  // that already has text stays visible so saved goals are never hidden.
+  const showFull = !editing || customize
+  const showMonthTabs = showFull || isFutureMonth
+  const showNotes = showFull || draft.notes.trim().length > 0
+  const shownPriorities = showFull ? MAX_PRIORITIES : 1
+  function showPriority(index: number) {
+    return (
+      showFull || index === 0 || (draft.priorities[index] ?? '').trim() !== ''
+    )
+  }
 
   useEffect(() => {
     if (!readyToAutosave.current || !isDirty) return
@@ -252,6 +270,40 @@ export function MonthlyIntentionsCard({
         )}
       </div>
 
+      {editing ? (
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5">
+          <div className="min-w-0">
+            <p
+              id="monthly-customize-label"
+              className="text-sm font-medium text-ink"
+            >
+              Customize monthly goals
+            </p>
+            <p className="text-xs text-ink-muted">
+              Add more priorities, a reason why, and plan next month.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={customize}
+            aria-labelledby="monthly-customize-label"
+            onClick={() => setCustomize(!customize)}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 ${
+              customize ? 'bg-sage-400' : 'bg-sage-200'
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                customize ? 'translate-x-[1.375rem]' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+      ) : null}
+
+      {showMonthTabs ? (
       <div
         role="tablist"
         aria-label="Month"
@@ -284,6 +336,7 @@ export function MonthlyIntentionsCard({
           {nextMonthLabel}
         </button>
       </div>
+      ) : null}
 
       <div className="mt-6 space-y-7">
         <div>
@@ -312,7 +365,7 @@ export function MonthlyIntentionsCard({
 
         <fieldset>
           <legend className="mb-1 text-sm font-medium text-ink">
-            My top priorities:
+            {showFull ? 'My top priorities:' : 'My top priority:'}
           </legend>
           <p className="mb-3 text-xs text-ink-muted">
             {isFutureMonth
@@ -328,6 +381,7 @@ export function MonthlyIntentionsCard({
               const complete = weeks >= WEEKS_PER_PRIORITY
 
               if (!editing && !hasText) return null
+              if (!showPriority(index)) return null
 
               return (
                 <div
@@ -436,7 +490,7 @@ export function MonthlyIntentionsCard({
           </div>
         </fieldset>
 
-        {editing || draft.notes.trim() ? (
+        {(editing && showNotes) || draft.notes.trim() ? (
           <div>
             <p className="mb-2 text-sm font-medium text-ink">
               Why does this matter to me?{' '}
@@ -465,13 +519,13 @@ export function MonthlyIntentionsCard({
             </p>
             <div className="flex items-center gap-2.5">
               <span className="text-sm tabular-nums text-sage-600">
-                {completedCount} of {filledPriorities || MAX_PRIORITIES}
+                {completedCount} of {filledPriorities || shownPriorities}
               </span>
               <div
                 className="h-1.5 w-16 overflow-hidden rounded-full bg-sage-200/80 sm:w-20"
                 role="progressbar"
                 aria-valuemin={0}
-                aria-valuemax={filledPriorities || MAX_PRIORITIES}
+                aria-valuemax={filledPriorities || shownPriorities}
                 aria-valuenow={completedCount}
                 aria-label="Completed priorities this month"
               >
