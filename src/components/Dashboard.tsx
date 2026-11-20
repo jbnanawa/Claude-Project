@@ -213,13 +213,6 @@ export function Dashboard({
               Nothing pinned yet. Add a photo, image link, or quote that feels
               like your future — one piece is enough to start.
             </p>
-            <button
-              type="button"
-              onClick={() => onNavigate('vision', 'add-vision')}
-              className="mt-5 inline-flex items-center justify-center rounded-xl bg-sage-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
-            >
-              Set up my board
-            </button>
           </div>
         ) : (
           <div
