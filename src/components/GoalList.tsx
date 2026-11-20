@@ -141,7 +141,12 @@ export function GoalList({
           No goals yet — and that&apos;s okay
         </p>
         <p className="mt-2 text-sm text-ink-soft">
-          Add your first one above and it&apos;ll show up right here.
+          <span className="sm:hidden">
+            Tap + to add your first one and it&apos;ll show up right here.
+          </span>
+          <span className="hidden sm:inline">
+            Add your first one above and it&apos;ll show up right here.
+          </span>
         </p>
       </div>
     )

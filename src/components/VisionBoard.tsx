@@ -591,7 +591,13 @@ export function VisionBoard({
             Your board is waiting for its first pin
           </p>
           <p className="mt-2 text-sm text-ink-soft">
-            Use the form above — future you will love looking back at these.
+            <span className="sm:hidden">
+              Tap + to pin your first one — future you will love looking back
+              at these.
+            </span>
+            <span className="hidden sm:inline">
+              Use the form above — future you will love looking back at these.
+            </span>
           </p>
         </div>
       ) : (
