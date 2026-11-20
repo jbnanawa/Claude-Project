@@ -24,21 +24,12 @@ function GoogleMark() {
   )
 }
 
-function AppleMark() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M16.4 12.7c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2 .8-1.2 1.1-2.3 1.1-2.4-.1 0-2.2-.8-2.5-3.7zM14.5 6.4c.6-.7 1-1.7.9-2.7-1 .1-2.1.6-2.7 1.4-.6.7-1.1 1.7-.9 2.7 1 0 2-.5 2.7-1.4z" />
-    </svg>
-  )
-}
-
 export function Login() {
   const {
     configured,
     error,
     clearError,
     signInWithGoogle,
-    signInWithApple,
     continueAsGuest,
   } = useAuth()
 
@@ -83,7 +74,7 @@ export function Login() {
             <code className="rounded bg-white/70 px-1 py-0.5 text-xs text-ink">
               .env.example
             </code>
-            ), enable Google and Apple in the Firebase console, then restart the
+            ), enable Google in the Firebase console, then restart the
             app.
           </div>
         ) : null}
@@ -118,15 +109,6 @@ export function Login() {
           </button>
           <button
             type="button"
-            onClick={() => void signInWithApple()}
-            disabled={!configured}
-            className="flex w-full items-center justify-center gap-3 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <AppleMark />
-            Continue with Apple
-          </button>
-          <button
-            type="button"
             onClick={continueAsGuest}
             className="flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-ink-soft transition hover:bg-blush-100 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400"
           >
@@ -135,8 +117,8 @@ export function Login() {
         </div>
 
         <p className="mt-6 text-center text-xs leading-relaxed text-ink-muted">
-          Guest mode keeps everything on this device. You can link Google or
-          Apple later.
+          Guest mode keeps everything on this device. You can link Google
+          later.
         </p>
       </div>
     </div>

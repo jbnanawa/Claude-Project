@@ -61,7 +61,6 @@ export function AccountSettings({
     isGuest,
     configured,
     signInWithGoogle,
-    signInWithApple,
     signOut,
   } = useAuth()
 
@@ -166,7 +165,7 @@ export function AccountSettings({
         <section className="glass-card space-y-4 p-6 animate-fade-up sm:p-8">
           <h2 className="font-display text-xl text-ink">Link an account</h2>
           <p className="text-sm leading-relaxed text-ink-soft">
-            Sign in with Google or Apple when you&apos;re ready. Your data stays
+            Sign in with Google when you&apos;re ready. Your data stays
             on this device for now.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -177,14 +176,6 @@ export function AccountSettings({
               className="inline-flex items-center justify-center rounded-xl border border-sage-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-blush-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Continue with Google
-            </button>
-            <button
-              type="button"
-              onClick={() => void signInWithApple()}
-              disabled={!configured}
-              className="inline-flex items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Continue with Apple
             </button>
           </div>
         </section>
