@@ -16,6 +16,7 @@ import {
   goalFieldClass,
   goalSelectClass,
 } from './GoalFields'
+import { SheetCloseButton } from './SheetCloseButton'
 
 interface GoalListProps {
   goals: Goal[]
@@ -381,13 +382,7 @@ export function GoalList({
                   Update details, reminders, and where this lives.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={closeEditing}
-                className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-              >
-                Cancel
-              </button>
+              <SheetCloseButton onClick={closeEditing} />
             </div>
 
             <div className="mt-6 grid flex-1 content-start gap-4 sm:grid-cols-2">

@@ -15,6 +15,7 @@ import {
   type MonthlyIntentionsStore,
 } from '../lib/intentions'
 import type { MonthlyIntentions } from '../types'
+import { SheetCloseButton } from './SheetCloseButton'
 
 const PRIORITY_PROMPTS = [
   'Priority 1',
@@ -231,13 +232,7 @@ export function MonthlyIntentionsCard({
           </p>
         </div>
         {editing ? (
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-          >
-            Cancel
-          </button>
+          <SheetCloseButton onClick={() => setEditing(false)} />
         ) : (
           <button
             type="button"

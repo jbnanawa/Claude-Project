@@ -9,6 +9,7 @@ import {
 } from '../lib/image'
 import { quoteCardDataUrl, visionCardImageUrl } from '../lib/quoteCard'
 import type { VisionItem } from '../types'
+import { SheetCloseButton } from './SheetCloseButton'
 
 type AddMode = 'upload' | 'link' | 'quote'
 
@@ -377,13 +378,7 @@ export function VisionBoard({
                       : 'Pick how you want to add it — then tell me what it means.'}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={closeComposer}
-                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-                >
-                  Cancel
-                </button>
+                <SheetCloseButton onClick={closeComposer} />
               </div>
 
               <div className="mt-6 space-y-5">

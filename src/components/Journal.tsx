@@ -12,6 +12,7 @@ import type { JournalEntry } from '../types'
 import { JournalCalendar } from './JournalCalendar'
 import { MessageField, RichText } from './MessageField'
 import { SeasonIcon } from './SeasonIcon'
+import { SheetCloseButton } from './SheetCloseButton'
 
 interface JournalProps {
   entries: JournalEntry[]
@@ -283,13 +284,7 @@ export function Journal({
                 >
                   Today I&apos;m grateful for…
                 </p>
-                <button
-                  type="button"
-                  onClick={closeComposer}
-                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-                >
-                  Cancel
-                </button>
+                <SheetCloseButton onClick={closeComposer} />
               </div>
               <div className="mt-3">
                 <MessageField
@@ -597,13 +592,7 @@ export function Journal({
                   </span>
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={closeEditing}
-                className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-              >
-                Cancel
-              </button>
+              <SheetCloseButton onClick={closeEditing} />
             </div>
 
             <div className="mt-4">

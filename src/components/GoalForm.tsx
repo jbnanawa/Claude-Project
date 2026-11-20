@@ -3,6 +3,7 @@ import { GOAL_CATEGORIES } from '../data/categories'
 import { syncGoalToCalendar } from '../lib/calendar'
 import { createId } from '../lib/id'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { SheetCloseButton } from './SheetCloseButton'
 import type {
   Goal,
   GoalCalendar,
@@ -109,8 +110,6 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
   function renderFields(options: {
     titleId?: string
     autoFocus?: boolean
-    /** Mobile sheet shows an X icon instead of the "Cancel" text. */
-    iconClose?: boolean
   }): ReactNode {
     return (
       <>
@@ -126,34 +125,7 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
               Pick a category and tell me what you're reaching for.
             </p>
           </div>
-          {onCancel && options.iconClose ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              aria-label="Close"
-              className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-            >
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M4 4l8 8M12 4l-8 8" />
-              </svg>
-            </button>
-          ) : onCancel ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-ink-muted transition hover:bg-blush-100 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-400"
-            >
-              Cancel
-            </button>
-          ) : null}
+          {onCancel ? <SheetCloseButton onClick={onCancel} /> : null}
         </div>
 
         <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-sage-200 bg-blush-50 px-3.5 py-2.5">
@@ -357,11 +329,7 @@ export function GoalForm({ onAdd, onCancel }: GoalFormProps) {
             className="mx-auto mb-4 h-1 w-10 rounded-full bg-sage-200"
             aria-hidden="true"
           />
-          {renderFields({
-            titleId: 'add-goal-title',
-            autoFocus: true,
-            iconClose: true,
-          })}
+          {renderFields({ titleId: 'add-goal-title', autoFocus: true })}
         </form>
       </div>
 
