@@ -22,6 +22,7 @@ import {
   goalFieldClass,
   goalSelectClass,
 } from './GoalFields'
+import { HelpTip } from './HelpTip'
 import { SheetCloseButton } from './SheetCloseButton'
 
 const PRIORITY_PROMPTS = [
@@ -482,9 +483,9 @@ export function MonthlyIntentionsCard({
                   </div>
 
                   {!isFutureMonth ? (
-                    <div className="mt-3 pl-10">
+                    <div className="mt-3 flex items-center gap-2 pl-10">
                       <div
-                        className="flex max-w-xs items-center gap-1.5"
+                        className="flex max-w-xs flex-1 items-center gap-1.5"
                         role="progressbar"
                         aria-valuemin={0}
                         aria-valuemax={100}
@@ -526,6 +527,12 @@ export function MonthlyIntentionsCard({
                           },
                         )}
                       </div>
+                      <HelpTip label="How progress works" title="Progress tracker">
+                        Follow this priority through the month in four steps:
+                        Started, Growing, Almost there and Complete. Tap a
+                        segment to set where you are. Tap a filled segment to
+                        step back.
+                      </HelpTip>
                     </div>
                   ) : null}
 
