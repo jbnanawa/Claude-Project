@@ -3,6 +3,7 @@ import type { Goal } from '../types'
 import { GoalForm } from './GoalForm'
 import { GoalList } from './GoalList'
 import { MonthlyIntentionsCard } from './MonthlyIntentionsCard'
+import { AddFab } from './AddFab'
 
 type IntentionsTab = 'daily' | 'monthly'
 
@@ -30,6 +31,7 @@ export function Intentions({
   const [tab, setTab] = useState<IntentionsTab>(initialTab ?? 'daily')
   const [composing, setComposing] = useState(startComposing)
   const [monthlyEditing, setMonthlyEditing] = useState(false)
+  const [monthlyEmpty, setMonthlyEmpty] = useState(false)
 
   useEffect(() => {
     if (initialTab) setTab(initialTab)
@@ -179,35 +181,19 @@ export function Intentions({
           <MonthlyIntentionsCard
             editing={monthlyEditing}
             onEditingChange={setMonthlyEditing}
+            onEmptyChange={setMonthlyEmpty}
           />
         </div>
       )}
 
       {showFab ? (
-        <button
-          type="button"
+        <AddFab
           onClick={handleFab}
-          aria-label={
+          label={
             tab === 'monthly' ? 'Edit monthly goals' : 'Add goal'
           }
-          className="fixed right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-sage-400 text-white shadow-[0_8px_24px_rgba(61,50,48,0.22)] transition hover:bg-sage-700 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-400 sm:hidden"
-          style={{
-            bottom:
-              'calc(4.75rem + env(safe-area-inset-bottom, 0px) + 0.75rem)',
-          }}
-        >
-          <svg
-            className="h-7 w-7"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.25"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </button>
+          showHint={tab === 'daily' ? goals.length === 0 : monthlyEmpty}
+        />
       ) : null}
     </div>
   )

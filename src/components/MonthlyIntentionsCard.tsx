@@ -36,11 +36,14 @@ function hasIntentionsContent(intentions: MonthlyIntentions): boolean {
 interface MonthlyIntentionsCardProps {
   editing?: boolean
   onEditingChange?: (editing: boolean) => void
+  /** Reports whether no month has any intentions saved yet. */
+  onEmptyChange?: (empty: boolean) => void
 }
 
 export function MonthlyIntentionsCard({
   editing: editingProp,
   onEditingChange,
+  onEmptyChange,
 }: MonthlyIntentionsCardProps = {}) {
   const [rawStored, setRawStored] = useLocalStorage<
     MonthlyIntentionsStore | MonthlyIntentions
@@ -50,6 +53,11 @@ export function MonthlyIntentionsCard({
     () => coerceIntentionsStore(rawStored),
     [rawStored],
   )
+
+  const storeEmpty = !Object.values(store).some(hasIntentionsContent)
+  useEffect(() => {
+    onEmptyChange?.(storeEmpty)
+  }, [storeEmpty, onEmptyChange])
 
   const [scope, setScope] = useState<MonthScope>('current')
   const monthKey =

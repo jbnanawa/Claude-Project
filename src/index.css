@@ -230,6 +230,11 @@
     transform-origin: 50% 85%;
   }
 
+  /* Small nudge toward the + button for the "Start here" hint. */
+  .animate-nudge-right {
+    animation: nudge-right 1.6s ease-in-out infinite;
+  }
+
   /* Soft droplet bob — like a drop settling on water. */
   .animate-water-drop {
     animation: water-drop 2.8s ease-in-out infinite;
@@ -301,6 +306,16 @@
   50% {
     transform: scale(1.06);
     opacity: 0.85;
+  }
+}
+
+@keyframes nudge-right {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
   }
 }
 
